@@ -1,0 +1,1797 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BusinessPlay — El Juego de la Riqueza Real</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=DM+Mono:wght@400;500&display=swap');
+:root{
+  --bg:#0A0B0F;--surface:#12141A;--surface2:#1A1D26;--surface3:#22263A;
+  --border:#2A2E42;--accent:#F0C040;--accent2:#E05A30;
+  --green:#30C97A;--red:#E04A4A;--blue:#4A90E2;--purple:#9B6BFF;
+  --text:#E8EAF0;--muted:#7A7E92;
+  --fh:'Syne',sans-serif;--fb:'DM Sans',sans-serif;--fm:'DM Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:var(--fb);min-height:100vh;overflow-x:hidden;}
+.screen{display:none;min-height:100vh;}
+.screen.active{display:flex;flex-direction:column;}
+#screen-game.active{flex-direction:row;height:100vh;}
+
+/* ── INTRO ─────────────────────────────────────────────────────── */
+#screen-intro{align-items:center;justify-content:center;
+  background:radial-gradient(ellipse at 30% 20%,#1A1830 0%,#0A0B0F 60%),
+             radial-gradient(ellipse at 80% 80%,#1A1010 0%,transparent 50%);
+  position:relative;overflow:hidden;}
+#screen-intro::before{content:'';position:absolute;inset:0;
+  background-image:linear-gradient(var(--border) 1px,transparent 1px),
+    linear-gradient(90deg,var(--border) 1px,transparent 1px);
+  background-size:60px 60px;opacity:.25;}
+.intro-content{position:relative;z-index:2;text-align:center;max-width:720px;padding:40px;}
+.intro-logo{font-family:var(--fh);font-size:clamp(52px,8vw,88px);font-weight:800;
+  letter-spacing:-3px;line-height:1;
+  background:linear-gradient(135deg,var(--accent) 0%,#FF9500 50%,var(--accent2) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px;}
+.intro-tagline{font-size:15px;font-weight:300;letter-spacing:3px;color:var(--muted);
+  text-transform:uppercase;margin-bottom:40px;}
+.intro-badge{display:inline-flex;gap:8px;align-items:center;background:var(--surface);
+  border:1px solid var(--border);padding:8px 16px;border-radius:100px;margin-bottom:40px;
+  font-size:12px;color:var(--muted);font-family:var(--fm);}
+.intro-badge span{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.intro-modes{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:28px;}
+.mode-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;
+  padding:28px 24px;cursor:pointer;transition:all .25s;position:relative;overflow:hidden;text-align:left;}
+.mode-card:hover{border-color:var(--accent);transform:translateY(-2px);}
+.mode-card-icon{font-size:32px;margin-bottom:12px;}
+.mode-card h3{font-family:var(--fh);font-size:18px;font-weight:700;margin-bottom:6px;}
+.mode-card p{font-size:13px;color:var(--muted);line-height:1.5;}
+.mode-card .tag{position:absolute;top:16px;right:16px;background:var(--surface2);
+  border:1px solid var(--border);font-size:10px;font-family:var(--fm);
+  padding:3px 8px;border-radius:100px;color:var(--muted);}
+
+/* ── SETUP ─────────────────────────────────────────────────────── */
+#screen-setup{align-items:center;justify-content:center;background:var(--bg);overflow-y:auto;}
+.setup-container{width:100%;max-width:900px;padding:40px;}
+.setup-header{margin-bottom:36px;}
+.setup-header h2{font-family:var(--fh);font-size:34px;font-weight:800;margin-bottom:6px;}
+.setup-header p{color:var(--muted);font-size:14px;}
+.setup-section{margin-bottom:28px;}
+.setup-section-title{font-family:var(--fm);font-size:11px;font-weight:500;color:var(--accent);
+  text-transform:uppercase;letter-spacing:2px;margin-bottom:14px;
+  display:flex;align-items:center;gap:8px;}
+.setup-section-title::after{content:'';flex:1;height:1px;background:var(--border);}
+.level-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.level-card{border:2px solid var(--border);border-radius:12px;padding:18px 14px;
+  cursor:pointer;transition:all .2s;text-align:center;}
+.level-card.selected{border-color:var(--accent);background:rgba(240,192,64,.06);}
+.level-card .level-icon{font-size:26px;margin-bottom:8px;}
+.level-card .level-name{font-family:var(--fh);font-size:14px;font-weight:700;margin-bottom:4px;}
+.level-card .level-desc{font-size:11px;color:var(--muted);line-height:1.4;}
+.level-card.principiante.selected{border-color:var(--green);background:rgba(48,201,122,.06);}
+.level-card.intermedio.selected{border-color:var(--blue);background:rgba(74,144,226,.06);}
+.level-card.experto.selected{border-color:var(--purple);background:rgba(155,107,255,.06);}
+
+/* 4-player grid — ALL enabled */
+.players-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+.player-setup{background:var(--surface);border:1px solid var(--border);
+  border-radius:12px;padding:14px;position:relative;}
+.player-avatar-sel{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px;}
+.avatar-opt{font-size:20px;cursor:pointer;padding:3px;border-radius:6px;
+  border:2px solid transparent;transition:all .15s;opacity:.5;}
+.avatar-opt.sel{border-color:var(--accent);opacity:1;}
+.player-name-input{width:100%;background:var(--surface2);border:1px solid var(--border);
+  border-radius:8px;padding:8px 10px;color:var(--text);font-size:13px;
+  font-family:var(--fb);outline:none;transition:border-color .2s;}
+.player-name-input:focus{border-color:var(--accent);}
+.player-toggle{position:absolute;top:10px;right:10px;background:var(--surface2);
+  border:1px solid var(--border);border-radius:100px;width:32px;height:18px;
+  cursor:pointer;transition:all .2s;display:flex;align-items:center;padding:2px;}
+.player-toggle.on{background:var(--green);border-color:var(--green);justify-content:flex-end;}
+.player-toggle::after{content:'';width:14px;height:14px;background:white;border-radius:50%;}
+.num-rounds-row{display:flex;gap:10px;}
+.round-opt{flex:1;background:var(--surface);border:2px solid var(--border);
+  border-radius:10px;padding:12px;text-align:center;cursor:pointer;transition:all .2s;
+  font-family:var(--fh);font-size:18px;font-weight:700;}
+.round-opt.selected{border-color:var(--accent);color:var(--accent);}
+.round-opt small{display:block;font-family:var(--fb);font-size:11px;font-weight:400;
+  color:var(--muted);margin-top:2px;}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:13px 26px;border-radius:10px;
+  font-family:var(--fh);font-size:15px;font-weight:700;cursor:pointer;border:none;
+  transition:all .2s;text-decoration:none;}
+.btn-primary{background:linear-gradient(135deg,var(--accent),#FF9500);color:#000;}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(240,192,64,.3);}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--muted);}
+.btn-ghost:hover{border-color:var(--text);color:var(--text);}
+
+/* ── GAME SCREEN ────────────────────────────────────────────────── */
+#screen-game{flex-direction:row;height:100vh;max-height:100vh;overflow:hidden;}
+
+/* LEFT */
+.game-left{flex:1;display:flex;flex-direction:column;padding:8px;gap:8px;
+  min-width:0;overflow:hidden;min-height:0;}
+.topbar{display:flex;align-items:center;justify-content:space-between;
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:12px;padding:6px 14px;flex-shrink:0;}
+.topbar-left{display:flex;align-items:center;gap:10px;}
+.topbar-logo{font-family:var(--fh);font-size:17px;font-weight:800;
+  background:linear-gradient(135deg,var(--accent),#FF9500);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  white-space:nowrap;}
+.round-indicator{background:var(--surface2);border:1px solid var(--border);
+  border-radius:100px;padding:3px 10px;font-family:var(--fm);font-size:11px;color:var(--muted);}
+.topbar-right{display:flex;gap:6px;}
+
+/* BOARD WRAP — fills ALL remaining space, rectangular */
+.board-wrap{
+  flex:1;
+  display:flex;
+  align-items:stretch;       /* stretch so board fills full height */
+  justify-content:stretch;
+  overflow:hidden;
+  position:relative;
+  padding:6px;
+  min-height:0;              /* critical for flex children */
+  min-width:0;
+}
+
+/* THE BOARD — width/height set dynamically by JS, fills wrap */
+.board{
+  display:grid;
+  background:var(--surface);
+  border:2px solid var(--border);
+  border-radius:10px;
+  position:relative;
+  flex-shrink:0;
+  overflow:hidden;
+}
+
+/* Individual cells */
+.cell{border:1px solid var(--border);display:flex;flex-direction:column;
+  align-items:center;justify-content:center;cursor:pointer;
+  position:relative;transition:background .15s;overflow:hidden;padding:1px;}
+.cell:hover{background:rgba(255,255,255,.04);}
+.cell-top-bar{position:absolute;top:0;left:0;right:0;height:7px;}
+.cell-icon{font-size:var(--cell-icon,18px);line-height:1;margin-top:2px;}
+.cell-name{font-size:var(--cell-font,8px);text-align:center;color:var(--text);
+  line-height:1.2;font-family:var(--fm);max-width:96%;word-break:break-word;margin-top:2px;font-weight:600;}
+.cell-price{font-size:var(--price-font,7px);font-family:var(--fm);color:var(--accent);margin-top:1px;font-weight:600;}
+.cell-owner-bar{position:absolute;bottom:0;left:0;right:0;height:4px;}
+.cell-corner{background:var(--surface2)!important;}
+.cell-corner .cell-icon{font-size:var(--corner-icon,28px);}
+.cell-corner .corner-label{font-size:var(--corner-font,9px);font-family:var(--fh);font-weight:700;
+  color:var(--text);text-align:center;line-height:1.2;margin-top:3px;word-break:break-word;max-width:90%;}
+
+/* Center area */
+.board-center{grid-column:2/11;grid-row:2/11;background:var(--bg);
+  border:1px solid var(--border);display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:8px;position:relative;overflow:hidden;}
+.board-center::before{content:'';position:absolute;inset:0;
+  background-image:linear-gradient(var(--border) 1px,transparent 1px),
+    linear-gradient(90deg,var(--border) 1px,transparent 1px);
+  background-size:40px 40px;opacity:.15;}
+.center-logo{font-family:var(--fh);font-size:clamp(26px,3.5vw,52px);font-weight:800;
+  background:linear-gradient(135deg,var(--accent),#FF9500);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  letter-spacing:-1px;z-index:1;white-space:nowrap;}
+.center-sub{font-size:clamp(9px,1vw,13px);color:var(--muted);letter-spacing:2px;
+  text-transform:uppercase;font-family:var(--fm);z-index:1;}
+.center-players-row{display:flex;gap:6px;z-index:1;flex-wrap:wrap;justify-content:center;}
+.center-stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;z-index:1;width:min(200px,60%);}
+.center-stat{background:rgba(255,255,255,.04);border:1px solid var(--border);
+  border-radius:8px;padding:6px 10px;text-align:center;}
+.center-stat-val{font-family:var(--fm);font-size:clamp(14px,1.6vw,22px);font-weight:500;color:var(--accent);}
+.center-stat-lbl{font-size:clamp(8px,.9vw,12px);color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+
+/* TOKENS — smooth CSS transition */
+.token{position:absolute;font-size:16px;display:flex;align-items:center;
+  justify-content:center;z-index:20;pointer-events:none;
+  width:22px;height:22px;border-radius:50%;
+  transition:left .5s cubic-bezier(.34,1.56,.64,1), top .5s cubic-bezier(.34,1.56,.64,1);
+  filter:drop-shadow(0 3px 6px rgba(0,0,0,.9));}
+
+/* RIGHT PANEL */
+.game-right{width:300px;flex-shrink:0;background:var(--surface);
+  border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+.panel-tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0;}
+.panel-tab{flex:1;padding:11px 6px;text-align:center;font-size:11px;font-family:var(--fm);
+  cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;
+  transition:all .2s;text-transform:uppercase;letter-spacing:1px;}
+.panel-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.panel-content{flex:1;overflow-y:auto;padding:14px;
+  scrollbar-width:thin;scrollbar-color:var(--border) transparent;}
+.player-card{background:var(--surface2);border:1px solid var(--border);
+  border-radius:10px;padding:12px;margin-bottom:8px;transition:all .2s;}
+.player-card.current-turn{border-color:var(--accent);background:rgba(240,192,64,.05);
+  box-shadow:0 0 18px rgba(240,192,64,.1);}
+.player-card-top{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.player-emoji{font-size:22px;}
+.player-info{flex:1;min-width:0;}
+.player-card-name{font-family:var(--fh);font-size:13px;font-weight:700;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.player-card-pos{font-size:10px;color:var(--muted);font-family:var(--fm);}
+.player-wealth{font-family:var(--fm);font-size:14px;font-weight:500;color:var(--accent);text-align:right;}
+.player-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;}
+.pstat{background:var(--surface);border-radius:6px;padding:5px 7px;text-align:center;}
+.pstat-val{font-family:var(--fm);font-size:11px;font-weight:500;}
+.pstat-lbl{font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:1px;}
+.progress-bar-wrap{background:var(--surface2);border-radius:100px;height:4px;overflow:hidden;margin-top:6px;}
+.progress-bar{height:100%;border-radius:100px;transition:width .6s;}
+.market-ticker{background:var(--surface2);border:1px solid var(--border);
+  border-radius:10px;padding:10px;margin-bottom:7px;
+  display:flex;align-items:center;gap:8px;cursor:pointer;transition:border-color .2s;}
+.market-ticker:hover{border-color:var(--accent);}
+.ticker-symbol{font-family:var(--fm);font-size:12px;font-weight:500;width:46px;flex-shrink:0;}
+.ticker-bar{flex:1;}
+.ticker-name{font-size:9px;color:var(--muted);margin-bottom:2px;}
+.ticker-price-row{display:flex;align-items:center;justify-content:space-between;}
+.ticker-price{font-family:var(--fm);font-size:12px;}
+.ticker-change{font-family:var(--fm);font-size:10px;padding:2px 5px;border-radius:4px;font-weight:500;}
+.ticker-change.up{background:rgba(48,201,122,.15);color:var(--green);}
+.ticker-change.down{background:rgba(224,74,74,.15);color:var(--red);}
+.ticker-sparkline{width:54px;height:22px;flex-shrink:0;}
+.log-entry{display:flex;gap:7px;padding:7px 0;border-bottom:1px solid var(--border);
+  font-size:11px;animation:fadeIn .3s;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+.log-entry:last-child{border:none;}
+.log-icon{font-size:13px;flex-shrink:0;}
+.log-text{color:var(--muted);line-height:1.4;}
+.log-text strong{color:var(--text);}
+
+/* ACTION ZONE */
+.action-zone{border-top:1px solid var(--border);padding:14px;flex-shrink:0;}
+.action-title{font-family:var(--fm);font-size:10px;color:var(--muted);
+  text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;}
+.dice-display{display:flex;gap:8px;margin-bottom:10px;align-items:center;}
+.die{width:48px;height:48px;background:var(--surface2);border:2px solid var(--border);
+  border-radius:10px;display:flex;align-items:center;justify-content:center;
+  font-size:26px;transition:all .15s;position:relative;overflow:hidden;}
+.die.rolling{animation:dieRoll .8s ease-out;}
+@keyframes dieRoll{
+  0%{transform:rotate(0) scale(1);filter:blur(0);}
+  15%{transform:rotate(-20deg) scale(1.15);filter:blur(1px);}
+  30%{transform:rotate(15deg) scale(.9);filter:blur(2px);}
+  45%{transform:rotate(-10deg) scale(1.1);filter:blur(1px);}
+  60%{transform:rotate(8deg) scale(.95);filter:blur(1px);}
+  75%{transform:rotate(-4deg) scale(1.05);filter:blur(.5px);}
+  90%{transform:rotate(2deg) scale(1.02);filter:blur(0);}
+  100%{transform:rotate(0) scale(1);filter:blur(0);}
+}
+.dice-total-box{display:flex;flex-direction:column;justify-content:center;gap:2px;margin-left:6px;}
+.dice-total-label{font-size:9px;color:var(--muted);}
+.dice-total-num{font-family:var(--fm);font-size:24px;font-weight:700;color:var(--accent);}
+.action-row{display:flex;gap:7px;}
+.btn-sm{padding:10px 14px;border-radius:8px;font-size:13px;font-family:var(--fh);
+  font-weight:700;cursor:pointer;border:none;transition:all .2s;flex:1;text-align:center;}
+
+/* LEVEL BADGE */
+.level-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;
+  border-radius:100px;font-size:10px;font-family:var(--fm);font-weight:500;}
+.level-badge.principiante{background:rgba(48,201,122,.15);color:var(--green);}
+.level-badge.intermedio{background:rgba(74,144,226,.15);color:var(--blue);}
+.level-badge.experto{background:rgba(155,107,255,.15);color:var(--purple);}
+
+/* OVERLAYS / MODALS */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);
+  display:none;align-items:center;justify-content:center;z-index:1000;padding:16px;}
+.overlay.active{display:flex;}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:18px;
+  padding:28px;max-width:500px;width:100%;max-height:90vh;overflow-y:auto;
+  animation:modalIn .25s cubic-bezier(.34,1.56,.64,1);}
+@keyframes modalIn{from{transform:scale(.9) translateY(20px);opacity:0}to{transform:none;opacity:1}}
+.modal-icon{font-size:44px;text-align:center;margin-bottom:14px;}
+.modal-title{font-family:var(--fh);font-size:22px;font-weight:800;text-align:center;margin-bottom:6px;}
+.modal-sub{color:var(--muted);font-size:12px;text-align:center;margin-bottom:20px;line-height:1.5;}
+.modal-price{background:var(--surface2);border:1px solid var(--border);
+  border-radius:10px;padding:14px;margin-bottom:16px;}
+.modal-price-row{display:flex;justify-content:space-between;padding:4px 0;font-size:12px;}
+.modal-price-row .label{color:var(--muted);}
+.modal-price-row .value{font-family:var(--fm);font-weight:500;}
+.modal-price-row.total .value{color:var(--accent);font-size:15px;}
+.modal-actions{display:flex;gap:8px;}
+.modal-actions .btn{flex:1;justify-content:center;}
+.question-opts{display:grid;gap:7px;margin-bottom:16px;}
+.q-opt{background:var(--surface2);border:2px solid var(--border);border-radius:10px;
+  padding:11px 14px;cursor:pointer;font-size:12px;transition:all .2s;line-height:1.4;}
+.q-opt:hover{border-color:var(--accent);color:var(--accent);}
+.q-opt.correct{border-color:var(--green);background:rgba(48,201,122,.1);color:var(--green);}
+.q-opt.wrong{border-color:var(--red);background:rgba(224,74,74,.1);color:var(--red);}
+.invest-controls{margin-bottom:16px;}
+.invest-label{font-size:11px;color:var(--muted);margin-bottom:7px;}
+.invest-input{width:100%;background:var(--surface2);border:1px solid var(--border);
+  border-radius:8px;padding:9px 13px;color:var(--text);
+  font-family:var(--fm);font-size:15px;outline:none;transition:border-color .2s;}
+.invest-input:focus{border-color:var(--accent);}
+.invest-presets{display:flex;gap:5px;margin-top:7px;}
+.preset{background:var(--surface2);border:1px solid var(--border);border-radius:6px;
+  padding:4px 9px;font-size:11px;font-family:var(--fm);cursor:pointer;transition:all .2s;}
+.preset:hover{border-color:var(--accent);color:var(--accent);}
+
+/* FLASH */
+.market-flash{position:fixed;top:16px;right:16px;background:var(--surface);
+  border:1px solid var(--border);border-radius:12px;padding:10px 14px;
+  z-index:500;font-size:12px;display:flex;align-items:center;gap:8px;
+  animation:flashIn .3s,flashOut .3s 2.7s forwards;max-width:260px;}
+@keyframes flashIn{from{transform:translateX(80px);opacity:0}to{transform:none;opacity:1}}
+@keyframes flashOut{from{opacity:1}to{opacity:0;pointer-events:none}}
+
+/* WINNER */
+#screen-winner{align-items:center;justify-content:center;
+  background:radial-gradient(ellipse at center,#1A1510 0%,var(--bg) 70%);}
+.winner-content{text-align:center;max-width:580px;padding:40px;}
+.winner-emoji{font-size:72px;margin-bottom:18px;animation:bounce 1s infinite;}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+.winner-title{font-family:var(--fh);font-size:44px;font-weight:800;
+  background:linear-gradient(135deg,var(--accent),#FF9500);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:6px;}
+.winner-name{font-family:var(--fh);font-size:28px;font-weight:700;margin-bottom:28px;}
+.winner-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:36px;}
+.wstat{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 14px;}
+.wstat-val{font-family:var(--fm);font-size:20px;font-weight:500;color:var(--accent);margin-bottom:4px;}
+.wstat-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
+.confetti{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:1;}
+.confetti-piece{position:absolute;top:-20px;animation:cfFall linear infinite;border-radius:2px;}
+@keyframes cfFall{to{transform:translateY(110vh) rotate(720deg);}}
+
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+.sep{height:1px;background:var(--border);margin:10px 0;}
+.text-green{color:var(--green);}.text-red{color:var(--red);}.text-accent{color:var(--accent);}
+.online-setup{background:var(--surface2);border:1px solid var(--border);
+  border-radius:12px;padding:18px;margin-bottom:20px;}
+.room-code{font-family:var(--fm);font-size:30px;font-weight:500;color:var(--accent);
+  letter-spacing:8px;text-align:center;margin:10px 0;}
+
+/* ── VOICE CHAT ────────────────────────────────────────────────────────── */
+.voice-bar{
+  display:flex;align-items:center;gap:6px;padding:7px 10px;
+  background:var(--surface);border-top:1px solid var(--border);flex-shrink:0;
+}
+.voice-players{display:flex;gap:5px;flex:1;flex-wrap:wrap;align-items:center;}
+.vp-tile{
+  display:flex;align-items:center;gap:3px;
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:20px;padding:3px 8px 3px 5px;font-size:11px;
+  transition:all .2s;
+}
+.vp-tile.speaking{border-color:var(--green);background:rgba(48,201,122,.1);box-shadow:0 0 8px rgba(48,201,122,.3);}
+.vp-tile.muted-tile{opacity:.4;}
+.vp-avatar{font-size:13px;}
+.vp-name{font-family:var(--fm);font-size:9px;color:var(--text);max-width:48px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.vp-bars{display:flex;gap:1px;align-items:flex-end;height:11px;margin-left:2px;}
+.vp-bars span{width:2px;background:var(--green);border-radius:1px;transition:height .08s;}
+.mic-btn{
+  display:flex;align-items:center;gap:5px;
+  background:var(--surface2);border:1.5px solid var(--border);
+  border-radius:20px;padding:5px 11px;cursor:pointer;
+  font-family:var(--fm);font-size:10px;color:var(--text);
+  transition:all .2s;flex-shrink:0;white-space:nowrap;
+}
+.mic-btn:hover{border-color:var(--accent);color:var(--accent);}
+.mic-btn.mic-on{background:rgba(48,201,122,.1);border-color:var(--green);color:var(--green);}
+.mic-btn.mic-off{background:rgba(224,74,74,.08);border-color:var(--red);color:var(--red);}
+/* Voice join modal */
+.vmodal-bg{position:fixed;inset:0;background:rgba(0,0,0,.75);
+  display:none;align-items:center;justify-content:center;z-index:3000;}
+.vmodal-bg.open{display:flex;}
+.vmodal{background:var(--surface);border:1px solid var(--border);border-radius:18px;
+  padding:26px;max-width:360px;width:92%;text-align:center;
+  animation:modalIn .22s cubic-bezier(.34,1.56,.64,1);}
+.vmodal h3{font-family:var(--fh);font-size:19px;font-weight:800;margin-bottom:6px;}
+.vmodal p{font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:18px;}
+.vmodal-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:18px;}
+.vmodal-card{background:var(--surface2);border:2px solid var(--border);
+  border-radius:10px;padding:11px 6px;cursor:pointer;transition:all .2s;}
+.vmodal-card:hover{border-color:var(--accent);}
+.vmodal-card.picked{border-color:var(--accent);background:rgba(240,192,64,.07);}
+.vmodal-card .vc-av{font-size:24px;margin-bottom:3px;}
+.vmodal-card .vc-nm{font-size:10px;font-family:var(--fm);}
+.verr{color:var(--red);font-size:11px;margin-top:8px;min-height:16px;}
+</style>
+</head>
+<body>
+
+<!-- ═══ INTRO ══════════════════════════════════════════════════════════════ -->
+<div id="screen-intro" class="screen active">
+  <div class="intro-content">
+    <div class="intro-logo">BusinessPlay</div>
+    <div class="intro-tagline">El Juego de la Riqueza Real</div>
+    <div class="intro-badge"><span></span>2–4 jugadores · 3 niveles · Tablero + Bolsa</div>
+    <div class="intro-modes">
+      <div class="mode-card" onclick="showSetup('local')">
+        <div class="tag">GRATIS</div>
+        <div class="mode-card-icon">🖥️</div>
+        <h3>Juego Local</h3>
+        <p>Hasta 4 jugadores en la misma pantalla, turnos alternativos.</p>
+      </div>
+      <div class="mode-card" onclick="showSetup('online')">
+        <div class="tag">BETA</div>
+        <div class="mode-card-icon">🌐</div>
+        <h3>Juego Online</h3>
+        <p>Invita amigos con un código de sala. Juegan desde cualquier lugar.</p>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+      <span style="font-size:11px;color:var(--muted);font-family:var(--fm);background:var(--surface);border:1px solid var(--border);padding:4px 12px;border-radius:100px;">🎓 Aprende mientras juegas</span>
+      <span style="font-size:11px;color:var(--muted);font-family:var(--fm);background:var(--surface);border:1px solid var(--border);padding:4px 12px;border-radius:100px;">📈 Mercado dinámico</span>
+      <span style="font-size:11px;color:var(--muted);font-family:var(--fm);background:var(--surface);border:1px solid var(--border);padding:4px 12px;border-radius:100px;">🏆 3 niveles de dificultad</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SETUP ═══════════════════════════════════════════════════════════════ -->
+<div id="screen-setup" class="screen">
+  <div class="setup-container">
+    <div class="setup-header">
+      <h2>Configurar Partida</h2>
+      <p id="setup-mode-label">Modo: Local</p>
+    </div>
+    <div id="online-section" style="display:none" class="setup-section">
+      <div class="setup-section-title">Sala Online</div>
+      <div class="online-setup">
+        <div style="font-size:10px;color:var(--muted);text-align:center;">Comparte este código con tus amigos</div>
+        <div class="room-code" id="room-code-display">—</div>
+        <button style="display:block;width:100%;background:var(--surface);border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:8px;font-size:12px;font-family:var(--fm);cursor:pointer;" onclick="copyRoomCode()">📋 Copiar código</button>
+      </div>
+    </div>
+    <div class="setup-section">
+      <div class="setup-section-title">Nivel de Dificultad</div>
+      <div class="level-grid">
+        <div class="level-card principiante selected" onclick="selectLevel('principiante',this)">
+          <div class="level-icon">🌱</div>
+          <div class="level-name">Principiante</div>
+          <div class="level-desc">Conceptos básicos. Ideal para aprender desde cero.</div>
+        </div>
+        <div class="level-card intermedio" onclick="selectLevel('intermedio',this)">
+          <div class="level-icon">📊</div>
+          <div class="level-name">Intermedio</div>
+          <div class="level-desc">Portafolios, análisis y sectores de inversión.</div>
+        </div>
+        <div class="level-card experto" onclick="selectLevel('experto',this)">
+          <div class="level-icon">🧠</div>
+          <div class="level-name">Experto</div>
+          <div class="level-desc">Derivados, hedge funds, macroeconomía avanzada.</div>
+        </div>
+      </div>
+    </div>
+    <div class="setup-section">
+      <div class="setup-section-title">Jugadores (2–4)</div>
+      <div class="players-grid" id="players-grid"></div>
+    </div>
+    <div class="setup-section">
+      <div class="setup-section-title">Duración de la partida</div>
+      <div class="num-rounds-row">
+        <div class="round-opt selected" onclick="selectRounds(10,this)">10<small>Rondas · Rápido</small></div>
+        <div class="round-opt" onclick="selectRounds(20,this)">20<small>Rondas · Normal</small></div>
+        <div class="round-opt" onclick="selectRounds(30,this)">30<small>Rondas · Completo</small></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:6px;">
+      <button class="btn btn-ghost" onclick="showScreen('screen-intro')">← Volver</button>
+      <button class="btn btn-primary" onclick="startGame()" style="flex:1;justify-content:center;">🚀 Iniciar Partida</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ GAME ═════════════════════════════════════════════════════════════════ -->
+<div id="screen-game" class="screen">
+  <div class="game-left">
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="topbar-logo">BusinessPlay</div>
+        <div class="round-indicator" id="round-indicator">Ronda 1/10</div>
+        <span id="level-badge-top" class="level-badge principiante">🌱 Principiante</span>
+      </div>
+      <div class="topbar-right">
+        <button class="btn btn-ghost btn-sm" style="padding:6px 12px;font-size:11px;" onclick="toggleInvestModal()">📈 Invertir</button>
+        <button class="btn btn-ghost btn-sm" style="padding:6px 12px;font-size:11px;" onclick="showScreen('screen-intro')">✕ Salir</button>
+      </div>
+    </div>
+    <div class="board-wrap">
+      <div class="board" id="board"></div>
+    </div>
+  </div>
+  <div class="game-right">
+    <div class="panel-tabs">
+      <div class="panel-tab active" onclick="switchTab('players',this)">Jugadores</div>
+      <div class="panel-tab" onclick="switchTab('market',this)">Mercado</div>
+      <div class="panel-tab" onclick="switchTab('log',this)">Historial</div>
+    </div>
+    <div class="panel-content" id="panel-players"></div>
+    <div class="panel-content" id="panel-market" style="display:none"></div>
+    <div class="panel-content" id="panel-log" style="display:none"></div>
+    <!-- ── VOICE CHAT BAR ─────────────────────────────────── -->
+    <div class="voice-bar">
+      <span style="font-size:13px;flex-shrink:0;">🎙</span>
+      <div class="voice-players" id="vc-players">
+        <span style="font-size:10px;color:var(--muted);font-family:var(--fm);">Voz desactivada</span>
+      </div>
+      <button class="mic-btn" id="vc-btn" onclick="vcBtnClick()">
+        <span id="vc-btn-icon">🎤</span>
+        <span id="vc-btn-txt">Unirse</span>
+      </button>
+    </div>
+
+    <!-- ── VOICE JOIN MODAL ──────────────────────────────── -->
+    <div class="vmodal-bg" id="vmodal-bg">
+      <div class="vmodal">
+        <div style="font-size:40px;margin-bottom:10px;">🎙️</div>
+        <h3>Chat de Voz</h3>
+        <p>Selecciona tu jugador para activar el micrófono y hablar durante la partida.</p>
+        <div class="vmodal-grid" id="vmodal-grid"></div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-ghost" onclick="vcCloseModal()" style="flex:1;justify-content:center;font-size:13px;">Cancelar</button>
+          <button class="btn btn-primary" onclick="vcConfirm()" style="flex:1;justify-content:center;font-size:13px;">🎤 Activar</button>
+        </div>
+        <div class="verr" id="vc-err"></div>
+      </div>
+    </div>
+
+    <div class="action-zone">
+      <!-- Turn banner — completely replaced by updateTurnUI() -->
+      <div id="turn-banner" style="display:flex;align-items:center;gap:8px;margin-bottom:10px;
+        padding:8px 12px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);">
+        <span id="turn-avatar" style="font-size:22px;">🎲</span>
+        <div>
+          <div style="font-size:9px;color:var(--muted);font-family:var(--fm);text-transform:uppercase;letter-spacing:1px;">Turno actual</div>
+          <div id="turn-name" style="font-family:var(--fh);font-size:14px;font-weight:700;">—</div>
+        </div>
+        <div id="turn-cash" style="margin-left:auto;font-family:var(--fm);font-size:12px;color:var(--accent);">$0</div>
+      </div>
+      <div class="dice-display">
+        <div class="die" id="die1">🎲</div>
+        <div class="die" id="die2">🎲</div>
+        <div class="dice-total-box">
+          <div class="dice-total-label">Total</div>
+          <div class="dice-total-num" id="dice-total">—</div>
+        </div>
+      </div>
+      <div class="action-row">
+        <button class="btn btn-primary btn-sm" id="btn-roll" onclick="rollDice()">🎲 Lanzar dados</button>
+        <button class="btn btn-ghost btn-sm" id="btn-end-turn" onclick="endTurn()" style="display:none;">Fin turno →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ WINNER ═══════════════════════════════════════════════════════════════ -->
+<div id="screen-winner" class="screen">
+  <div class="confetti" id="confetti"></div>
+  <div class="winner-content">
+    <div class="winner-emoji" id="winner-emoji">🏆</div>
+    <div class="winner-title">¡GANADOR!</div>
+    <div class="winner-name" id="winner-name">—</div>
+    <div class="winner-stats" id="winner-stats"></div>
+    <div style="display:flex;gap:12px;justify-content:center;">
+      <button class="btn btn-ghost" onclick="showScreen('screen-intro')">🏠 Menú principal</button>
+      <button class="btn btn-primary" onclick="rematch()">🔄 Revancha</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MODALS ════════════════════════════════════════════════════════════════ -->
+<div class="overlay" id="overlay-property">
+  <div class="modal">
+    <div class="modal-icon" id="prop-icon">🏢</div>
+    <div class="modal-title" id="prop-name">—</div>
+    <div class="modal-sub" id="prop-sub">—</div>
+    <div class="modal-price" id="prop-details"></div>
+    <div class="modal-actions" id="prop-actions"></div>
+  </div>
+</div>
+<div class="overlay" id="overlay-question">
+  <div class="modal">
+    <div class="modal-icon">🧠</div>
+    <div class="modal-title">Pregunta de Conocimiento</div>
+    <div class="modal-sub" id="q-text">—</div>
+    <div class="question-opts" id="q-opts"></div>
+    <div id="q-result" style="display:none;text-align:center;padding:10px;border-radius:8px;margin-bottom:10px;font-size:12px;line-height:1.5;"></div>
+    <button class="btn btn-primary" id="q-continue" onclick="closeQuestion()" style="display:none;width:100%;justify-content:center;">Continuar →</button>
+  </div>
+</div>
+<div class="overlay" id="overlay-invest">
+  <div class="modal">
+    <div class="modal-icon">📈</div>
+    <div class="modal-title">Mercado de Inversiones</div>
+    <div class="modal-sub">Invierte en activos del mercado y haz crecer tu patrimonio</div>
+    <div id="invest-tickers" style="margin-bottom:14px;"></div>
+    <div class="invest-controls">
+      <div class="invest-label">Monto a invertir en <span id="invest-selected-name" style="color:var(--accent)">— selecciona un activo —</span></div>
+      <input class="invest-input" id="invest-amount" type="number" placeholder="$0" min="100">
+      <div class="invest-presets">
+        <div class="preset" onclick="setInvestPreset(.25)">25%</div>
+        <div class="preset" onclick="setInvestPreset(.5)">50%</div>
+        <div class="preset" onclick="setInvestPreset(.75)">75%</div>
+        <div class="preset" onclick="setInvestPreset(1)">Todo</div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeOverlay('overlay-invest')">Cancelar</button>
+      <button class="btn btn-primary" onclick="executeInvestment()">Invertir →</button>
+    </div>
+  </div>
+</div>
+<div class="overlay" id="overlay-event">
+  <div class="modal">
+    <div class="modal-icon" id="event-icon">⚡</div>
+    <div class="modal-title" id="event-title">Evento de Mercado</div>
+    <div class="modal-sub" id="event-text">—</div>
+    <div class="modal-price" id="event-effect" style="margin-bottom:18px;"></div>
+    <button class="btn btn-primary" onclick="closeOverlay('overlay-event');resumeAfterEvent()" style="width:100%;justify-content:center;">Entendido →</button>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════════════════════════
+const BOARD_SIZE = 40;
+const STARTING_CASH = 15000;
+const SALARY = 2000;
+
+const COLORS_MAP = {
+  brown:'#8B4513',lightblue:'#5BBCDD',pink:'#FF69B4',
+  orange:'#FF8C00',red:'#DC143C',yellow:'#FFD700',
+  green:'#228B22',navy:'#003580'
+};
+const PLAYER_COLORS = ['#F0C040','#4A90E2','#30C97A','#E05A30'];
+const AVATARS = ['👨‍💼','👩‍💼','🧑‍💻','🕵️','🦸‍♀️','🧙‍♂️','🤴','👩‍🔬'];
+
+// Board definition — 40 cells, richer content
+const BOARD_CELLS = [
+  // id 0-9: bottom row (right→left in grid)
+  {id:0,  type:'corner',  name:'SALIDA',         icon:'🏁', corner:true,  tip:'Cobra $2,000 cada vez que pasas'},
+  {id:1,  type:'property',name:'Acciones Tech',   icon:'💻', color:'brown', price:600,  rent:40,  tip:'Empresas de tecnología emergente'},
+  {id:2,  type:'event',   name:'Evento',          icon:'⚡', tip:'Evento de mercado sorpresa'},
+  {id:3,  type:'property',name:'Fintech App',     icon:'📱', color:'brown', price:600,  rent:40,  tip:'Startup de pagos digitales'},
+  {id:4,  type:'tax',     name:'Impuesto',        icon:'💸', amount:200,   tip:'El Estado cobra su parte'},
+  {id:5,  type:'station', name:'Bróker A',        icon:'🏦', price:2000, rent:250,     tip:'Bróker con acceso a todos los mercados'},
+  {id:6,  type:'property',name:'Fondo Mixto',     icon:'📊', color:'lightblue',price:1000,rent:60,tip:'60% renta variable, 40% renta fija'},
+  {id:7,  type:'question',name:'Pregunta',        icon:'🧠', tip:'Responde y gana dinero'},
+  {id:8,  type:'property',name:'ETF Global',      icon:'🌍', color:'lightblue',price:1000,rent:60,tip:'Exposición a 7,000+ acciones mundiales'},
+  {id:9,  type:'property',name:'S&P 500 Fund',   icon:'📈', color:'lightblue',price:1200,rent:80,tip:'Las 500 empresas más grandes de EE.UU.'},
+  // id 10-19: right column (bottom→top)
+  {id:10, type:'corner',  name:'VISITA',          icon:'👀', corner:true,  tip:'Solo de visita, no en prisión'},
+  {id:11, type:'property',name:'Bonos Corp.',     icon:'📜', color:'pink',  price:1400,rent:100, tip:'Deuda corporativa con cupón fijo'},
+  {id:12, type:'utility', name:'Forex',           icon:'💱', price:1500,rent:100,             tip:'Mercado de divisas internacional'},
+  {id:13, type:'property',name:'REIT Comercial',  icon:'🏬', color:'pink',  price:1400,rent:100, tip:'Centros comerciales y oficinas'},
+  {id:14, type:'property',name:'REIT Residencial',icon:'🏘️', color:'pink',  price:1600,rent:120, tip:'Apartamentos y viviendas en renta'},
+  {id:15, type:'station', name:'Bróker B',        icon:'🏦', price:2000,rent:250,             tip:'Especialista en mercados emergentes'},
+  {id:16, type:'property',name:'Commodities',     icon:'🛢️', color:'orange',price:1800,rent:140,tip:'Petróleo, gas y materias primas'},
+  {id:17, type:'event',   name:'Evento',          icon:'⚡', tip:'Evento de mercado sorpresa'},
+  {id:18, type:'property',name:'Oro Físico',      icon:'🥇', color:'orange',price:1800,rent:140,tip:'Reserva de valor histórico'},
+  {id:19, type:'property',name:'Derivados',       icon:'📉', color:'orange',price:2000,rent:160,tip:'Opciones y futuros financieros'},
+  // id 20-29: top row (left→right)
+  {id:20, type:'corner',  name:'BOLSA LIBRE',     icon:'🎉', corner:true,  tip:'Recibe $500 de bono especial'},
+  {id:21, type:'property',name:'Hedge Fund',      icon:'🦁', color:'red',   price:2200,rent:180,tip:'Estrategias long/short sofisticadas'},
+  {id:22, type:'question',name:'Pregunta',        icon:'🧠', tip:'Responde y gana dinero'},
+  {id:23, type:'property',name:'Private Equity',  icon:'💼', color:'red',   price:2200,rent:180,tip:'Capital privado en empresas maduras'},
+  {id:24, type:'property',name:'Venture Capital', icon:'🚀', color:'red',   price:2400,rent:200,tip:'Inversión en startups de alto riesgo'},
+  {id:25, type:'station', name:'Bróker C',        icon:'🏦', price:2000,rent:250,             tip:'Bróker premium para activos alternativos'},
+  {id:26, type:'property',name:'Crypto DeFi',     icon:'₿',  color:'yellow',price:2600,rent:220,tip:'Finanzas descentralizadas en blockchain'},
+  {id:27, type:'event',   name:'Evento',          icon:'⚡', tip:'Evento de mercado sorpresa'},
+  {id:28, type:'property',name:'NFT Portfolio',   icon:'🎨', color:'yellow',price:2600,rent:220,tip:'Activos digitales únicos y coleccionables'},
+  {id:29, type:'property',name:'Blockchain Corp', icon:'⛓️', color:'yellow',price:2800,rent:240,tip:'Empresa especializada en Web3 y blockchain'},
+  // id 30-39: left column (top→bottom)
+  {id:30, type:'corner',  name:'CRISIS',          icon:'📉', corner:true,  tip:'¡Crisis! Pierde un turno'},
+  {id:31, type:'property',name:'Farmacéutica',    icon:'💊', color:'green', price:3000,rent:260,tip:'Sector salud defensivo y regulado'},
+  {id:32, type:'utility', name:'Energía Solar',   icon:'☀️', price:1500,rent:100,             tip:'Renovables con alta demanda futura'},
+  {id:33, type:'property',name:'AI Startup',      icon:'🤖', color:'green', price:3000,rent:260,tip:'Inteligencia artificial generativa'},
+  {id:34, type:'property',name:'EV Motors',       icon:'🚗', color:'green', price:3200,rent:280,tip:'Vehículos eléctricos y movilidad futura'},
+  {id:35, type:'station', name:'Bróker D',        icon:'🏦', price:2000,rent:250,             tip:'Bróker especializado en mercados asiáticos'},
+  {id:36, type:'question',name:'Pregunta',        icon:'🧠', tip:'Responde y gana dinero'},
+  {id:37, type:'property',name:'Luxury REIT',     icon:'🏰', color:'navy',  price:3500,rent:350,tip:'Hoteles de lujo y resorts premium'},
+  {id:38, type:'event',   name:'Evento',          icon:'⚡', tip:'Evento de mercado sorpresa'},
+  {id:39, type:'property',name:'MegaCorp HQ',     icon:'🏛️', color:'navy',  price:4000,rent:450,tip:'La corporación más poderosa del tablero'},
+];
+
+// Position map: cell id → {col, row} in 11×11 grid (1-indexed)
+const POS_MAP = {};
+for(let i=0;i<=9;i++)   POS_MAP[i]  = {col:11-i, row:11};   // bottom, right→left
+POS_MAP[10] = {col:1, row:11};                                 // corner bottom-left
+for(let i=11;i<=19;i++) POS_MAP[i]  = {col:1, row:11-(i-10)};// left col, bottom→top
+POS_MAP[20] = {col:1, row:1};                                  // corner top-left
+for(let i=21;i<=29;i++) POS_MAP[i]  = {col:i-20+1, row:1};   // top row, left→right
+POS_MAP[30] = {col:11, row:1};                                 // corner top-right
+for(let i=31;i<=39;i++) POS_MAP[i]  = {col:11, row:i-30+1};  // right col, top→bottom
+
+const MARKET_ASSETS = [
+  {symbol:'TECH',name:'Tech Index',  price:150,history:[150]},
+  {symbol:'GOLD',name:'Oro',         price:200,history:[200]},
+  {symbol:'CRPT',name:'Crypto Mix',  price:80, history:[80]},
+  {symbol:'REIT',name:'Real Estate', price:120,history:[120]},
+  {symbol:'BOND',name:'Bonos Gov.',  price:100,history:[100]},
+  {symbol:'EMRG',name:'Emergentes',  price:90, history:[90]},
+];
+
+const QUESTIONS = {
+  principiante:[
+    {q:'¿Qué es el interés compuesto?',opts:['Interés solo sobre el capital inicial','Interés sobre capital + intereses acumulados','Una comisión bancaria fija','El precio de un bono'],ans:1,reward:500,exp:'El interés compuesto se calcula sobre el capital más los intereses previamente acumulados.'},
+    {q:'¿Qué significa diversificar una inversión?',opts:['Poner todo en una acción ganadora','Distribuir el capital en diferentes activos','Guardar dinero en efectivo','Invertir solo en tu país'],ans:1,reward:500,exp:'Diversificar distribuye el riesgo en distintos activos para que una caída no arruine todo.'},
+    {q:'¿Qué es un ETF?',opts:['Una criptomoneda','Un fondo que cotiza en bolsa como una acción','Una cuenta bancaria especial','Un contrato de seguro'],ans:1,reward:500,exp:'Un ETF replica un índice y cotiza en bolsa. Permite diversificación con un solo activo.'},
+    {q:'¿Para qué sirve el fondo de emergencia?',opts:['Para invertir cuando hay crisis','Para cubrir gastos imprevistos sin vender inversiones','Para especular con divisas','Para pagar menos impuestos'],ans:1,reward:500,exp:'El fondo de emergencia protege tus inversiones. Sin él, podrías vender en el peor momento.'},
+    {q:'¿Qué es el DCA (Dollar Cost Averaging)?',opts:['Invertir todo de una vez en el mejor momento','Invertir montos fijos periódicamente sin importar el precio','Comprar solo en caídas del mercado','Diversificar por países'],ans:1,reward:500,exp:'DCA consiste en invertir cantidades fijas periódicamente, promediando el precio de compra.'},
+    {q:'¿Qué sucede con el dinero guardado bajo el colchón?',opts:['Crece con el tiempo','Pierde valor por la inflación','Genera intereses automáticamente','No cambia su valor nunca'],ans:1,reward:500,exp:'La inflación reduce el poder adquisitivo del dinero guardado sin invertir.'},
+    {q:'¿Qué es un activo financiero?',opts:['Solo bienes físicos como casas','Recurso que puede generar valor o flujos futuros','Dinero en efectivo únicamente','Una deuda con el banco'],ans:1,reward:500,exp:'Un activo financiero es cualquier recurso que puede generar valor o ingresos en el futuro.'},
+    {q:'¿Cuál es la Regla del 72?',opts:['Ahorrar el 72% del salario','Años para duplicar el dinero = 72 / tasa de retorno','Invertir a partir de los 72 años','El 72% del portafolio en bonos'],ans:1,reward:500,exp:'Divide 72 entre el rendimiento anual y obtienes los años necesarios para duplicar tu capital.'},
+  ],
+  intermedio:[
+    {q:'¿Qué indica una curva de rendimientos invertida?',opts:['Mercado alcista inminente','Posible recesión económica','Baja inflación sostenida','Alto crecimiento del PIB'],ans:1,reward:800,exp:'Una curva invertida (tasas cortas > largas) ha precedido históricamente a recesiones.'},
+    {q:'¿Qué mide el Sharpe Ratio?',opts:['Rentabilidad bruta anual del fondo','Rendimiento ajustado por unidad de riesgo','La volatilidad total del portafolio','La correlación con el mercado'],ans:1,reward:800,exp:'Sharpe = (Retorno - Tasa libre de riesgo) / Desviación estándar. Mide el retorno por unidad de riesgo.'},
+    {q:'¿Qué es el "rebalanceo" de un portafolio?',opts:['Vender todo y reinvertir desde cero','Restaurar los pesos originales cuando se desvían','Añadir más capital al portafolio','Cambiar completamente la estrategia'],ans:1,reward:800,exp:'Rebalancear devuelve el portafolio a la asignación objetivo cuando los activos se desvían.'},
+    {q:'¿Cuál es la ventaja del tax-loss harvesting?',opts:['Aumentar el rendimiento bruto','Compensar ganancias con pérdidas fiscales','Evitar impuestos permanentemente','Mejorar la diversificación'],ans:1,reward:800,exp:'Vender activos con pérdida para compensar ganancias de capital y reducir la factura fiscal.'},
+    {q:'¿Qué mide la "duration" de un bono?',opts:['El plazo hasta el vencimiento del bono','Sensibilidad del precio a cambios en tasas de interés','El rendimiento anual del bono','El riesgo de impago del emisor'],ans:1,reward:800,exp:'Duration mide cuánto cambia el precio de un bono ante una variación del 1% en las tasas.'},
+    {q:'¿Qué es la estrategia Core-Satellite?',opts:['Invertir solo en ETFs de índices','Núcleo indexado + posiciones activas específicas','Diversificación únicamente por sectores','Solo mercados emergentes'],ans:1,reward:800,exp:'Core (70-80% indexado pasivo) + Satellite (20-30% posiciones activas o temáticas específicas).'},
+    {q:'¿Qué significa el Cap Rate en bienes raíces?',opts:['El precio máximo de compra','NOI dividido entre el precio de compra','El alquiler mensual del inmueble','La tasa hipotecaria del préstamo'],ans:1,reward:800,exp:'Cap Rate = Ingreso Operativo Neto / Precio de compra. Mide la rentabilidad operativa bruta.'},
+    {q:'¿Cuándo la gestión activa tiene más sentido?',opts:['Siempre, los gestores siempre superan al índice','En mercados menos eficientes como small caps','Nunca, la gestión pasiva siempre gana','Solo en mercados de EE.UU.'],ans:1,reward:800,exp:'Los mercados menos eficientes (small caps, emergentes, crédito de nicho) ofrecen más oportunidades de alfa.'},
+  ],
+  experto:[
+    {q:'¿Qué es el VaR y su principal limitación?',opts:['Retorno máximo; subestima ganancias','Pérdida máxima esperada; asume distribución normal','Volatilidad media; no incluye correlaciones','Drawdown máximo; solo datos históricos'],ans:1,reward:1200,exp:'VaR estima la pérdida máxima en condiciones normales, pero los mercados tienen "fat tails" que lo superan.'},
+    {q:'¿Qué es el CVaR (Expected Shortfall)?',opts:['El VaR ajustado por inflación','Pérdida promedio esperada en el peor X% de escenarios','Varianza condicional del portafolio','Correlación en escenarios de crisis'],ans:1,reward:1200,exp:'CVaR mide la pérdida promedio cuando se superan los límites del VaR. Es más informativo para el riesgo de cola.'},
+    {q:'En opciones financieras, ¿qué mide el Vega?',opts:['Sensibilidad al precio del subyacente','Sensibilidad al cambio en volatilidad implícita','Pérdida de valor por paso del tiempo','Aceleración del delta'],ans:1,reward:1200,exp:'Vega mide cuánto cambia el precio de la opción ante un 1% de variación en la volatilidad implícita.'},
+    {q:'¿Qué es la Curva J en Private Equity?',opts:['Curva de retorno en bonos de largo plazo','Pérdidas contables iniciales antes de ganancias','Ciclo de mercado alcista prolongado','Impacto fiscal de las inversiones'],ans:1,reward:1200,exp:'La curva J refleja las pérdidas contables iniciales de los fondos de PE antes de que se materialicen las ganancias.'},
+    {q:'¿Qué es la Frontera Eficiente de Markowitz?',opts:['El portafolio de mayor retorno posible','Portafolios que maximizan retorno por unidad de riesgo','El portafolio con menor volatilidad','La correlación óptima entre activos'],ans:1,reward:1200,exp:'La Frontera Eficiente representa los portafolios con máximo retorno para cada nivel de riesgo dado.'},
+    {q:'¿Cuál es el problema del "factor crowding"?',opts:['Demasiados activos en el portafolio','Muchos inversores en la misma estrategia factorial erosionan la prima','Correlación excesiva entre factores distintos','Costos de transacción elevados'],ans:1,reward:1200,exp:'Cuando demasiados inversores adoptan la misma estrategia factorial, la prima se comprime y pierde eficacia.'},
+    {q:'¿Qué es el DPI en un fondo de Private Equity?',opts:['Retorno total prometido al final','Capital realmente devuelto a inversores hasta hoy','Valor del portafolio no realizado','Tasa interna de retorno anualizada'],ans:1,reward:1200,exp:'DPI (Distributions to Paid-In) es el único retorno materializado en efectivo real para los inversores.'},
+    {q:'¿Qué caracteriza al "Barbell Portfolio" de Taleb?',opts:['Igual ponderación en todos los activos','Activos ultra-seguros + activos convexos de alto upside, sin el medio','Solo bonos y acciones de gran capitalización','Portafolio diversificado en 100 activos'],ans:1,reward:1200,exp:'El Barbell concentra 80-90% en activos ultra-seguros y 10-20% en activos convexos de máximo upside potencial.'},
+  ]
+};
+
+const EVENTS = {
+  principiante:[
+    {icon:'📈',title:'¡Mercado Alcista!',text:'Las bolsas suben por datos económicos positivos.',effect:'all_cash',value:.10,positive:true},
+    {icon:'📉',title:'Corrección del Mercado',text:'El mercado cae un 15%. Las propiedades pierden valor temporalmente.',effect:'property_loss',value:.15,positive:false},
+    {icon:'💰',title:'Dividendos Repartidos',text:'Cobras dividendos de tus activos.',effect:'dividend',value:500,positive:true},
+    {icon:'🏦',title:'Baja de Tasas',text:'El banco central baja tasas. Recibes crédito especial.',effect:'current_cash',value:1000,positive:true},
+    {icon:'😰',title:'Impuesto Especial',text:'El gobierno aplica un impuesto extraordinario.',effect:'current_loss',value:.10,positive:false},
+    {icon:'🎁',title:'Bono Corporativo',text:'Tu empresa otorga un bono de productividad.',effect:'current_cash',value:800,positive:true},
+  ],
+  intermedio:[
+    {icon:'🏦',title:'Subida de Tasas 50pb',text:'El banco central sube tasas. Los bonos pierden valor.',effect:'current_loss',value:.15,positive:false},
+    {icon:'📊',title:'Inflación Sorpresa',text:'La inflación supera expectativas. Los activos reales suben.',effect:'all_cash',value:.10,positive:true},
+    {icon:'🌍',title:'Crisis Geopolítica',text:'Tensión global afecta los mercados emergentes.',effect:'current_loss',value:.20,positive:false},
+    {icon:'🚀',title:'IPO Exitosa',text:'Una empresa tecnológica hace IPO. Los inversores tech ganan.',effect:'current_cash',value:1500,positive:true},
+    {icon:'💱',title:'Depreciación de Divisa',text:'La moneda local cae. Las inversiones internacionales suben.',effect:'all_cash',value:.08,positive:true},
+    {icon:'⚠️',title:'Regulación Cripto',text:'Nuevas regulaciones afectan el mercado de criptomonedas.',effect:'current_loss',value:.25,positive:false},
+  ],
+  experto:[
+    {icon:'🏦',title:'Quantitative Tightening',text:'La Fed inicia QT agresivo. Los activos de riesgo caen.',effect:'all_cash',value:-.12,positive:false},
+    {icon:'🦢',title:'Cisne Negro',text:'Evento sistémico imprevisto. El mercado entra en pánico.',effect:'current_loss',value:.20,positive:false},
+    {icon:'📉',title:'Curva Invertida',text:'La curva de tipos se invierte. Los bonos largos suben de precio.',effect:'current_cash',value:1800,positive:true},
+    {icon:'💎',title:'Factor Momentum Activado',text:'El mercado entra en tendencia. Tu portafolio activo gana.',effect:'all_cash',value:.18,positive:true},
+    {icon:'🔥',title:'VIX Explota (>40)',text:'La volatilidad implícita se dispara. Todos los activos de riesgo caen.',effect:'current_loss',value:.18,positive:false},
+    {icon:'🏛️',title:'Recesión Técnica',text:'PIB cae 2 trimestres. Los defensivos suben, los cíclicos caen.',effect:'current_cash',value:1200,positive:true},
+  ]
+};
+
+// ═══════════════════════════════════════════════════════════════════
+// GAME STATE
+// ═══════════════════════════════════════════════════════════════════
+let G = {
+  mode:'local', level:'principiante', players:[], currentPlayer:0,
+  round:1, maxRounds:10, properties:{}, market:{}, log:[], rolled:false,
+};
+let selectedLevel='principiante', selectedRounds=10;
+let playerConfigs = [
+  {name:'Jugador 1',avatar:'👨‍💼',active:true},
+  {name:'Jugador 2',avatar:'👩‍💼',active:true},
+  {name:'Jugador 3',avatar:'🧑‍💻',active:false},
+  {name:'Jugador 4',avatar:'🕵️', active:false},
+];
+let selectedInvestAsset = null;
+
+// ═══════════════════════════════════════════════════════════════════
+// SETUP
+// ═══════════════════════════════════════════════════════════════════
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if(id==='screen-game') setTimeout(resizeBoard, 20);
+  else vcLeave();   // stop mic when leaving game screen
+}
+function showSetup(mode){
+  G.mode=mode;
+  document.getElementById('setup-mode-label').textContent='Modo: '+(mode==='online'?'Online':'Local');
+  document.getElementById('online-section').style.display=mode==='online'?'block':'none';
+  if(mode==='online'){G.roomCode=Math.random().toString(36).substr(2,6).toUpperCase();document.getElementById('room-code-display').textContent=G.roomCode;}
+  buildPlayersGrid();
+  showScreen('screen-setup');
+}
+function buildPlayersGrid(){
+  const grid=document.getElementById('players-grid');
+  grid.innerHTML=playerConfigs.map((p,i)=>`
+    <div class="player-setup" id="psetup-${i}" style="${p.active?'':'opacity:.45'}">
+      <div style="font-size:9px;font-family:var(--fm);color:${PLAYER_COLORS[i]};margin-bottom:6px;text-transform:uppercase;letter-spacing:1px;">
+        Jugador ${i+1}
+      </div>
+      <div style="font-size:22px;margin-bottom:5px;" id="pav-${i}">${p.avatar}</div>
+      <div class="player-avatar-sel">
+        ${AVATARS.map((a,j)=>`<span class="avatar-opt ${p.avatar===a?'sel':''}" onclick="selectAvatar(${i},'${a}',this)">${a}</span>`).join('')}
+      </div>
+      <input class="player-name-input" value="${p.name}" oninput="playerConfigs[${i}].name=this.value" ${p.active?'':''}>
+      ${i>=2?`<div class="player-toggle ${p.active?'on':''}" id="ptog-${i}" onclick="togglePlayer(${i})"></div>`:''}
+    </div>`).join('');
+}
+function selectAvatar(idx,av,el){
+  playerConfigs[idx].avatar=av;
+  el.closest('.player-setup').querySelectorAll('.avatar-opt').forEach(a=>a.classList.remove('sel'));
+  el.classList.add('sel');
+  document.getElementById(`pav-${idx}`).textContent=av;
+}
+function togglePlayer(idx){
+  playerConfigs[idx].active=!playerConfigs[idx].active;
+  const tog=document.getElementById(`ptog-${idx}`);
+  const wrap=document.getElementById(`psetup-${idx}`);
+  tog.classList.toggle('on',playerConfigs[idx].active);
+  wrap.style.opacity=playerConfigs[idx].active?'1':'0.45';
+  wrap.querySelector('.player-name-input').disabled=!playerConfigs[idx].active;
+}
+function selectLevel(level,el){
+  document.querySelectorAll('.level-card').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected'); selectedLevel=level;
+}
+function selectRounds(n,el){
+  document.querySelectorAll('.round-opt').forEach(r=>r.classList.remove('selected'));
+  el.classList.add('selected'); selectedRounds=n;
+}
+function copyRoomCode(){navigator.clipboard?.writeText(G.roomCode);showFlash('📋','Código copiado: '+G.roomCode,true);}
+
+// ═══════════════════════════════════════════════════════════════════
+// START GAME
+// ═══════════════════════════════════════════════════════════════════
+function startGame(){
+  const active=playerConfigs.filter(p=>p.active);
+  if(active.length<2){alert('Necesitas al menos 2 jugadores activos.');return;}
+  G.level=selectedLevel; G.maxRounds=selectedRounds;
+  G.round=1; G.currentPlayer=0; G.properties={}; G.log=[]; G.rolled=false;
+  G.market={};
+  MARKET_ASSETS.forEach(a=>{G.market[a.symbol]={...a,history:[a.price],playerHoldings:{}};});
+  G.players=active.map((p,i)=>({
+    name:p.name, avatar:p.avatar, color:PLAYER_COLORS[i],
+    cash:STARTING_CASH, position:0, properties:[], investments:{},
+    inJail:false, jailTurns:0, passedGo:0,
+  }));
+  buildBoard();
+  // Allow DOM to paint then size the board
+  setTimeout(resizeBoard, 10);
+  renderPlayers(); renderMarket();
+  updateTurnUI(); updateLevelBadge();
+  G.players.forEach((_,i)=>placeToken(i,0,true));
+  addLog('🚀','Partida iniciada','Nivel: <strong>'+G.level+'</strong> · '+G.players.length+' jugadores');
+  vcRenderBar();
+  showScreen('screen-game');
+}
+function updateLevelBadge(){
+  const b=document.getElementById('level-badge-top');
+  const icons={principiante:'🌱',intermedio:'📊',experto:'🧠'};
+  b.className='level-badge '+G.level;
+  b.textContent=icons[G.level]+' '+G.level.charAt(0).toUpperCase()+G.level.slice(1);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// BOARD BUILD
+// ═══════════════════════════════════════════════════════════════════
+function buildBoard(){
+  const board=document.getElementById('board');
+  board.innerHTML='';
+  BOARD_CELLS.forEach(cell=>{
+    const pos=POS_MAP[cell.id];
+    const div=document.createElement('div');
+    div.className='cell'+(cell.corner?' cell-corner':'');
+    div.id='cell-'+cell.id;
+    div.style.gridColumn=pos.col;
+    div.style.gridRow=pos.row;
+    div.title=(cell.tip||cell.name);
+    div.onclick=()=>cellClick(cell.id);
+
+    if(cell.color){
+      const bar=document.createElement('div');
+      bar.className='cell-top-bar';
+      bar.style.background=COLORS_MAP[cell.color]||cell.color;
+      div.appendChild(bar);
+    }
+    const ico=document.createElement('div');
+    ico.className='cell-icon'; ico.textContent=cell.icon;
+    div.appendChild(ico);
+
+    if(cell.corner){
+      const lbl=document.createElement('div');
+      lbl.className='corner-label'; lbl.textContent=cell.name;
+      div.appendChild(lbl);
+    } else {
+      const nm=document.createElement('div');
+      nm.className='cell-name'; nm.textContent=cell.name;
+      div.appendChild(nm);
+      if(cell.price){
+        const pr=document.createElement('div');
+        pr.className='cell-price'; pr.textContent='$'+cell.price.toLocaleString();
+        div.appendChild(pr);
+      }
+    }
+    // owner bar placeholder
+    const ownerBar=document.createElement('div');
+    ownerBar.className='cell-owner-bar';
+    ownerBar.id='owner-bar-'+cell.id;
+    div.appendChild(ownerBar);
+
+    board.appendChild(div);
+  });
+  // Center
+  const center=document.createElement('div');
+  center.className='board-center';
+  center.style.gridColumn='2/11';
+  center.style.gridRow='2/11';
+  center.innerHTML=`
+    <div class="center-logo">BusinessPlay</div>
+    <div class="center-sub">El Juego de la Riqueza Real</div>
+    <div class="center-players-row" id="center-players"></div>
+    <div class="center-stat-grid" id="center-stats"></div>`;
+  board.appendChild(center);
+  updateCenterInfo();
+  updateBoardOwnership();
+}
+
+function updateCenterInfo(){
+  const pr=document.getElementById('center-players');
+  const st=document.getElementById('center-stats');
+  if(!pr||!G.players.length) return;
+  pr.innerHTML=G.players.map((p,i)=>
+    `<span title="${p.name}" style="font-size:22px;filter:drop-shadow(0 2px 6px ${p.color}99);
+      ${i===G.currentPlayer?'transform:scale(1.25);':'opacity:.7;'}">${p.avatar}</span>`
+  ).join('');
+  const cur=G.players[G.currentPlayer];
+  st.innerHTML=`
+    <div class="center-stat"><div class="center-stat-val" style="color:${cur.color}">${cur.avatar}</div><div class="center-stat-lbl">Turno</div></div>
+    <div class="center-stat"><div class="center-stat-val">Ronda ${G.round}</div><div class="center-stat-lbl">de ${G.maxRounds}</div></div>
+    <div class="center-stat"><div class="center-stat-val">$${cur.cash.toLocaleString()}</div><div class="center-stat-lbl">Efectivo</div></div>
+    <div class="center-stat"><div class="center-stat-val">${cur.properties.length}</div><div class="center-stat-lbl">Propied.</div></div>`;
+}
+
+function updateBoardOwnership(){
+  BOARD_CELLS.forEach(cell=>{
+    const bar=document.getElementById('owner-bar-'+cell.id);
+    const div=document.getElementById('cell-'+cell.id);
+    if(!bar||!div) return;
+    const owner=G.properties[cell.id];
+    if(owner!==undefined){
+      const p=G.players[owner];
+      bar.style.background=p.color;
+      div.style.boxShadow='inset 0 0 0 2px '+p.color+'66';
+    } else {
+      bar.style.background='transparent';
+      div.style.boxShadow='';
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// TOKEN PLACEMENT — uses absolute px based on cell position
+// ═══════════════════════════════════════════════════════════════════
+function getCellCenter(cellId){
+  const cell=document.getElementById('cell-'+cellId);
+  const board=document.getElementById('board');
+  if(!cell||!board) return {x:0,y:0};
+  const br=board.getBoundingClientRect();
+  const cr=cell.getBoundingClientRect();
+  return {
+    x: cr.left - br.left + cr.width/2,
+    y: cr.top  - br.top  + cr.height/2,
+  };
+}
+
+function placeToken(playerIdx, position, instant=false){
+  let token=document.getElementById('token-'+playerIdx);
+  if(!token){
+    token=document.createElement('div');
+    token.className='token';
+    token.id='token-'+playerIdx;
+    token.textContent=G.players[playerIdx].avatar;
+    token.style.backgroundColor=G.players[playerIdx].color+'33';
+    token.style.border='2px solid '+G.players[playerIdx].color;
+    document.getElementById('board').appendChild(token);
+  }
+  const {x,y}=getCellCenter(position);
+  // offset tokens so they don't overlap on the same cell
+  const offsets=[{dx:-9,dy:-9},{dx:9,dy:-9},{dx:-9,dy:9},{dx:9,dy:9}];
+  const off=offsets[playerIdx]||{dx:0,dy:0};
+  if(instant){
+    token.style.transition='none';
+    token.style.left=(x-11+off.dx)+'px';
+    token.style.top =(y-11+off.dy)+'px';
+    requestAnimationFrame(()=>{token.style.transition='';});
+  } else {
+    token.style.left=(x-11+off.dx)+'px';
+    token.style.top =(y-11+off.dy)+'px';
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// DICE — natural physics feel
+// ═══════════════════════════════════════════════════════════════════
+const DICE_FACES=['⚀','⚁','⚂','⚃','⚄','⚅'];
+
+function rollDice(){
+  if(G.rolled) return;
+  G.rolled=true;
+  const d1El=document.getElementById('die1');
+  const d2El=document.getElementById('die2');
+  const totEl=document.getElementById('dice-total');
+  document.getElementById('btn-roll').disabled=true;
+
+  // rapid shuffle animation
+  d1El.classList.add('rolling');
+  d2El.classList.add('rolling');
+  totEl.textContent='...';
+
+  let frames=0;
+  const shuffle=setInterval(()=>{
+    d1El.textContent=DICE_FACES[Math.floor(Math.random()*6)];
+    d2El.textContent=DICE_FACES[Math.floor(Math.random()*6)];
+    frames++;
+    if(frames>14){clearInterval(shuffle);}
+  },55);
+
+  setTimeout(()=>{
+    d1El.classList.remove('rolling');
+    d2El.classList.remove('rolling');
+    const v1=Math.ceil(Math.random()*6);
+    const v2=Math.ceil(Math.random()*6);
+    const total=v1+v2;
+    d1El.textContent=DICE_FACES[v1-1];
+    d2El.textContent=DICE_FACES[v2-1];
+    totEl.textContent=total;
+    document.getElementById('btn-roll').disabled=false;
+    movePlayer(G.currentPlayer, total);
+  }, 900);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// MOVEMENT — step-by-step animation
+// ═══════════════════════════════════════════════════════════════════
+function movePlayer(playerIdx, steps){
+  const p=G.players[playerIdx];
+  let step=0;
+  let pos=p.position;
+
+  function nextStep(){
+    if(step>=steps){
+      p.position=pos;
+      updateCenterInfo();
+      renderPlayers();
+      setTimeout(()=>landOnCell(playerIdx,pos),350);
+      return;
+    }
+    pos=(pos+1)%BOARD_SIZE;
+    step++;
+    // Salary for passing GO
+    if(pos===0){
+      p.cash+=SALARY; p.passedGo++;
+      showFlash('🏁',p.name+' pasa SALIDA y cobra $'+SALARY.toLocaleString()+'!',true);
+      addLog('🏁',p.name,'pasa por SALIDA · <strong>+$'+SALARY.toLocaleString()+'</strong>');
+    }
+    placeToken(playerIdx, pos);
+    setTimeout(nextStep, 180);
+  }
+  nextStep();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// LAND ON CELL
+// ═══════════════════════════════════════════════════════════════════
+function landOnCell(playerIdx, position){
+  const cell=BOARD_CELLS[position];
+  const p=G.players[playerIdx];
+  addLog(cell.icon, p.name, 'cae en <strong>'+cell.name+'</strong>');
+
+  if(cell.type==='corner'){
+    if(cell.id===30){showFlash('😰','¡CRISIS! '+p.name+' pierde el turno.',false);p.inJail=true;p.jailTurns=0;}
+    else if(cell.id===20){p.cash+=500;showFlash('🎉',p.name+' recibe $500 de bono — Bolsa Libre!',true);}
+    showEndTurnButton(); return;
+  }
+  if(cell.type==='tax'){
+    const tax=cell.amount||200;
+    p.cash=Math.max(0,p.cash-tax);
+    showFlash('💸',p.name+' paga impuesto $'+tax,false);
+    addLog('💸',p.name,'paga <strong>$'+tax+'</strong> en impuestos');
+    renderPlayers(); showEndTurnButton(); return;
+  }
+  if(cell.type==='question'){showQuestion(playerIdx);return;}
+  if(cell.type==='event'){triggerEvent(playerIdx);return;}
+  if(cell.type==='property'||cell.type==='station'||cell.type==='utility'){
+    const owner=G.properties[position];
+    if(owner===undefined){showPropertyBuy(playerIdx,cell,position);}
+    else if(owner===playerIdx){showFlash('🏠','¡Ya eres dueño de '+cell.name+'!',true);showEndTurnButton();}
+    else {
+      const rent=getPropertyRent(cell,position);
+      p.cash=Math.max(0,p.cash-rent);
+      G.players[owner].cash+=rent;
+      showFlash('💸',p.name+' paga alquiler $'+rent+' a '+G.players[owner].name,false);
+      addLog('💸',p.name,'paga <strong>$'+rent+'</strong> a <strong>'+G.players[owner].name+'</strong>');
+      renderPlayers(); showEndTurnButton();
+    }
+    return;
+  }
+  showEndTurnButton();
+}
+
+function getPropertyRent(cell,position){
+  const owner=G.properties[position];
+  if(owner===undefined) return 0;
+  const same=BOARD_CELLS.filter(c=>c.color&&c.color===cell.color);
+  const ownerCount=same.filter(c=>G.properties[c.id]===owner).length;
+  let rent=cell.rent||200;
+  if(same.length>0&&ownerCount===same.length) rent*=2;
+  return rent;
+}
+
+function showEndTurnButton(){
+  document.getElementById('btn-end-turn').style.display='flex';
+  fluctuateMarket();
+  updateCenterInfo();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// END TURN — FIX: always updates current player name correctly
+// ═══════════════════════════════════════════════════════════════════
+function endTurn(){
+  document.getElementById('btn-end-turn').style.display='none';
+  const rollBtn = document.getElementById('btn-roll');
+  rollBtn.style.display='flex';
+  rollBtn.disabled = false;
+  document.getElementById('die1').textContent='🎲';
+  document.getElementById('die2').textContent='🎲';
+  document.getElementById('dice-total').textContent='—';
+  G.rolled=false;
+
+  G.currentPlayer=(G.currentPlayer+1)%G.players.length;
+
+  if(G.currentPlayer===0){
+    G.round++;
+    if(G.round>G.maxRounds){endGame();return;}
+    document.getElementById('round-indicator').textContent='Ronda '+G.round+'/'+G.maxRounds;
+    addLog('🔄','Nueva ronda','<strong>Ronda '+G.round+' de '+G.maxRounds+'</strong>');
+  }
+
+  // Skip jailed player
+  if(G.players[G.currentPlayer].inJail){
+    G.players[G.currentPlayer].jailTurns++;
+    if(G.players[G.currentPlayer].jailTurns>=2){
+      G.players[G.currentPlayer].inJail=false;G.players[G.currentPlayer].jailTurns=0;
+    } else {
+      addLog('😰',G.players[G.currentPlayer].name,'pierde turno por CRISIS');
+      endTurn(); return;
+    }
+  }
+
+  updateTurnUI();
+  renderPlayers();
+  updateCenterInfo();
+}
+
+// updateTurnUI — single source of truth for turn display
+function updateTurnUI(){
+  const p = G.players[G.currentPlayer];
+  if(!p) return;
+  
+  // Update turn banner
+  const avatar = document.getElementById('turn-avatar');
+  const name   = document.getElementById('turn-name');
+  const cash   = document.getElementById('turn-cash');
+  const banner = document.getElementById('turn-banner');
+  
+  if(avatar) avatar.textContent = p.avatar;
+  if(name){
+    name.textContent = p.name;
+    name.style.color = p.color;
+  }
+  if(cash)   cash.textContent  = '$' + p.cash.toLocaleString();
+  if(banner) banner.style.borderColor = p.color;
+
+  // Also make sure btn-roll is visible and enabled
+  const btnRoll = document.getElementById('btn-roll');
+  const btnEnd  = document.getElementById('btn-end-turn');
+  if(btnRoll){ btnRoll.style.display='flex'; btnRoll.disabled=false; }
+  if(btnEnd)  btnEnd.style.display='none';
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// PROPERTY MODAL
+// ═══════════════════════════════════════════════════════════════════
+function showPropertyBuy(playerIdx,cell,position){
+  const p=G.players[playerIdx];
+  const canAfford=p.cash>=cell.price;
+  document.getElementById('prop-icon').textContent=cell.icon;
+  document.getElementById('prop-name').textContent=cell.name;
+  document.getElementById('prop-sub').textContent=canAfford
+    ? p.avatar+' '+p.name+', ¿deseas comprar esta propiedad?'
+    : '⚠️ No tienes suficiente efectivo (necesitas $'+cell.price.toLocaleString()+')';
+  document.getElementById('prop-details').innerHTML=`
+    <div class="modal-price-row"><span class="label">💡 Consejo</span><span class="value" style="font-size:10px;color:var(--muted)">${cell.tip||''}</span></div>
+    <div class="sep"></div>
+    <div class="modal-price-row"><span class="label">Precio de compra</span><span class="value">$${(cell.price||0).toLocaleString()}</span></div>
+    <div class="modal-price-row"><span class="label">Alquiler base</span><span class="value">$${(cell.rent||200).toLocaleString()}</span></div>
+    <div class="modal-price-row"><span class="label">Alquiler monopolio (×2)</span><span class="value">$${((cell.rent||200)*2).toLocaleString()}</span></div>
+    <div class="sep"></div>
+    <div class="modal-price-row total"><span class="label">Tu efectivo</span><span class="value">$${p.cash.toLocaleString()}</span></div>`;
+  document.getElementById('prop-actions').innerHTML=`
+    <button class="btn btn-ghost" onclick="closeOverlay('overlay-property');showEndTurnButton()">Pasar</button>
+    ${canAfford?'<button class="btn btn-primary" onclick="buyProperty('+playerIdx+','+position+')">Comprar →</button>':''}`;
+  openOverlay('overlay-property');
+}
+
+function buyProperty(playerIdx,position){
+  const cell=BOARD_CELLS[position];
+  const p=G.players[playerIdx];
+  p.cash-=cell.price; p.properties.push(position);
+  G.properties[position]=playerIdx;
+  updateBoardOwnership();
+  closeOverlay('overlay-property');
+  showFlash('🏠',p.name+' compró '+cell.name,true);
+  addLog('🏠',p.name,'compra <strong>'+cell.name+'</strong> por $'+cell.price.toLocaleString());
+  renderPlayers(); showEndTurnButton();
+}
+
+function cellClick(id){
+  const cell=BOARD_CELLS[id];
+  const owner=G.properties[id];
+  if(owner!==undefined){
+    const p=G.players[owner];
+    showFlash(cell.icon,'Dueño: '+p.avatar+' '+p.name+' · Renta: $'+getPropertyRent(cell,id),true);
+  } else if(cell.price){
+    showFlash(cell.icon,cell.name+' · $'+cell.price.toLocaleString()+' · '+cell.tip,false);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// QUESTIONS
+// ═══════════════════════════════════════════════════════════════════
+let currentQ=null;
+function showQuestion(playerIdx){
+  const pool=QUESTIONS[G.level];
+  currentQ={q:pool[Math.floor(Math.random()*pool.length)],playerIdx};
+  document.getElementById('q-text').textContent=currentQ.q.q;
+  document.getElementById('q-result').style.display='none';
+  document.getElementById('q-continue').style.display='none';
+  document.getElementById('q-opts').innerHTML=currentQ.q.opts.map((opt,i)=>
+    `<div class="q-opt" onclick="answerQuestion(${i},this)">${String.fromCharCode(65+i)}. ${opt}</div>`
+  ).join('');
+  openOverlay('overlay-question');
+}
+function answerQuestion(idx,el){
+  const q=currentQ.q;
+  document.querySelectorAll('.q-opt').forEach(o=>o.onclick=null);
+  const res=document.getElementById('q-result');
+  res.style.display='block';
+  if(idx===q.ans){
+    el.classList.add('correct');
+    G.players[currentQ.playerIdx].cash+=q.reward;
+    res.style.background='rgba(48,201,122,.15)';res.style.color='var(--green)';
+    res.innerHTML='✅ ¡Correcto! +$'+q.reward.toLocaleString()+' · <em>'+q.exp+'</em>';
+    addLog('🧠',G.players[currentQ.playerIdx].name,'responde CORRECTAMENTE · <strong>+$'+q.reward.toLocaleString()+'</strong>');
+  } else {
+    el.classList.add('wrong');
+    document.querySelectorAll('.q-opt')[q.ans].classList.add('correct');
+    const penalty=Math.floor(q.reward/2);
+    G.players[currentQ.playerIdx].cash=Math.max(0,G.players[currentQ.playerIdx].cash-penalty);
+    res.style.background='rgba(224,74,74,.15)';res.style.color='var(--red)';
+    res.innerHTML='❌ Incorrecto. -$'+penalty.toLocaleString()+' · <em>'+q.exp+'</em>';
+    addLog('🧠',G.players[currentQ.playerIdx].name,'responde MAL · <strong>-$'+penalty.toLocaleString()+'</strong>');
+  }
+  document.getElementById('q-continue').style.display='flex';
+  renderPlayers();
+}
+function closeQuestion(){closeOverlay('overlay-question');showEndTurnButton();}
+
+// ═══════════════════════════════════════════════════════════════════
+// EVENTS
+// ═══════════════════════════════════════════════════════════════════
+function triggerEvent(playerIdx){
+  const pool=EVENTS[G.level];
+  const ev=pool[Math.floor(Math.random()*pool.length)];
+  const p=G.players[playerIdx];
+  document.getElementById('event-icon').textContent=ev.icon;
+  document.getElementById('event-title').textContent=ev.title;
+  document.getElementById('event-text').textContent=ev.text;
+  let effectText='';
+  if(ev.effect==='all_cash'){
+    const mult=ev.value<0?ev.value:ev.value;
+    G.players.forEach(pl=>{pl.cash=Math.max(0,Math.floor(pl.cash*(1+mult)));});
+    effectText='Todos los jugadores '+(ev.value>0?'ganan':'pierden')+' '+(Math.abs(ev.value)*100).toFixed(0)+'% en efectivo';
+  } else if(ev.effect==='current_cash'){
+    p.cash+=ev.value;
+    effectText=p.name+' recibe +$'+ev.value.toLocaleString();
+  } else if(ev.effect==='current_loss'){
+    const loss=Math.floor(p.cash*ev.value);
+    p.cash=Math.max(0,p.cash-loss);
+    effectText=p.name+' pierde $'+loss.toLocaleString();
+  } else if(ev.effect==='dividend'){
+    const gain=p.properties.length*ev.value;
+    p.cash+=gain;
+    effectText=p.name+' cobra dividendos: +$'+gain.toLocaleString();
+  } else {
+    effectText='El evento afecta al mercado global';
+  }
+  document.getElementById('event-effect').innerHTML=`
+    <div class="modal-price-row"><span class="label">Efecto</span>
+      <span class="value ${ev.positive?'text-green':'text-red'}">${effectText}</span></div>`;
+  addLog(ev.icon,'EVENTO','<strong>'+ev.title+'</strong> — '+effectText);
+  renderPlayers();
+  openOverlay('overlay-event');
+}
+function resumeAfterEvent(){showEndTurnButton();}
+
+// ═══════════════════════════════════════════════════════════════════
+// MARKET
+// ═══════════════════════════════════════════════════════════════════
+function fluctuateMarket(){
+  Object.values(G.market).forEach(a=>{
+    const ch=(Math.random()-.48)*.14;
+    a.price=Math.max(8,Math.round(a.price*(1+ch)));
+    a.history.push(a.price);
+    if(a.history.length>24) a.history.shift();
+  });
+  renderMarket();
+}
+
+function toggleInvestModal(){
+  selectedInvestAsset=null;
+  document.getElementById('invest-selected-name').textContent='— selecciona un activo —';
+  document.getElementById('invest-amount').value='';
+  renderInvestTickers();
+  openOverlay('overlay-invest');
+}
+
+function renderInvestTickers(){
+  const p=G.players[G.currentPlayer];
+  document.getElementById('invest-tickers').innerHTML=Object.values(G.market).map(a=>{
+    const ch=a.history.length>1?((a.price-a.history[a.history.length-2])/a.history[a.history.length-2]*100).toFixed(1):'0.0';
+    const up=parseFloat(ch)>=0;
+    const h=a.playerHoldings[G.currentPlayer];
+    const owned=h?h.units:0;
+    const sel=selectedInvestAsset===a.symbol;
+    return `<div class="market-ticker" onclick="selectInvestAsset('${a.symbol}',this)"
+      style="border-color:${sel?'var(--accent)':'var(--border)'};">
+      <div class="ticker-symbol" style="color:${up?'var(--green)':'var(--red)'}">${a.symbol}</div>
+      <div class="ticker-bar">
+        <div class="ticker-name">${a.name}${owned>0?' <span style="font-size:9px;color:var(--muted)">('+owned+'u)</span>':''}</div>
+        <div class="ticker-price-row">
+          <span class="ticker-price">$${a.price}</span>
+          <span class="ticker-change ${up?'up':'down'}">${up?'+':''}${ch}%</span>
+        </div>
+      </div>
+      <svg class="ticker-sparkline" viewBox="0 0 60 24">${sparklinePath(a.history,up)}</svg>
+    </div>`;
+  }).join('');
+}
+
+function selectInvestAsset(symbol){
+  selectedInvestAsset=symbol;
+  document.getElementById('invest-selected-name').textContent=symbol;
+  renderInvestTickers();
+}
+
+function setInvestPreset(frac){
+  const p=G.players[G.currentPlayer];
+  document.getElementById('invest-amount').value=Math.floor(p.cash*frac);
+}
+
+function executeInvestment(){
+  if(!selectedInvestAsset){showFlash('⚠️','Selecciona un activo primero',false);return;}
+  const amount=parseInt(document.getElementById('invest-amount').value)||0;
+  const p=G.players[G.currentPlayer];
+  if(amount<=0||amount>p.cash){showFlash('⚠️','Monto inválido',false);return;}
+  const a=G.market[selectedInvestAsset];
+  const units=Math.floor(amount/a.price);
+  if(units===0){showFlash('⚠️','Monto muy bajo para 1 unidad',false);return;}
+  const spent=units*a.price;
+  p.cash-=spent;
+  if(!a.playerHoldings[G.currentPlayer]) a.playerHoldings[G.currentPlayer]={units:0,avgCost:0,currentValue:0};
+  const h=a.playerHoldings[G.currentPlayer];
+  const tot=h.units+units;
+  h.avgCost=Math.round((h.avgCost*h.units+a.price*units)/tot);
+  h.units=tot; h.currentValue=tot*a.price;
+  closeOverlay('overlay-invest');selectedInvestAsset=null;
+  showFlash('📈',p.name+' invirtió $'+spent.toLocaleString()+' en '+a.name,true);
+  addLog('📈',p.name,'invierte <strong>$'+spent.toLocaleString()+'</strong> en <strong>'+a.symbol+'</strong>');
+  renderPlayers();renderMarket();
+}
+
+function sparklinePath(history,up){
+  if(history.length<2) return '';
+  const mn=Math.min(...history),mx=Math.max(...history),rng=mx-mn||1;
+  const pts=history.map((v,i)=>{
+    const x=(i/(history.length-1))*58+1;
+    const y=22-((v-mn)/rng)*18-1;
+    return x+','+y;
+  });
+  return '<polyline points="'+pts.join(' ')+'" fill="none" stroke="'+(up?'#30C97A':'#E04A4A')+'" stroke-width="1.5"/>';
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// RENDER PANELS
+// ═══════════════════════════════════════════════════════════════════
+function renderPlayers(){
+  const panel=document.getElementById('panel-players');
+  const maxW=G.players.reduce((a,_,i)=>Math.max(a,getPlayerWealth(i)),1);
+  // Sync turn banner cash display
+  const cur = G.players[G.currentPlayer];
+  const cashEl = document.getElementById('turn-cash');
+  if(cashEl && cur) cashEl.textContent = '$' + cur.cash.toLocaleString();
+
+  panel.innerHTML=G.players.map((p,i)=>{
+    const isCurrent=i===G.currentPlayer;
+    const wealth=getPlayerWealth(i);
+    return `<div class="player-card ${isCurrent?'current-turn':''}">
+      <div class="player-card-top">
+        <div class="player-emoji">${p.avatar}</div>
+        <div class="player-info">
+          <div class="player-card-name" style="color:${p.color}">${p.name}${isCurrent?' ◀':''}</div>
+          <div class="player-card-pos">📍 ${BOARD_CELLS[p.position]?.name||'—'}</div>
+        </div>
+        <div class="player-wealth">$${wealth.toLocaleString()}</div>
+      </div>
+      <div class="player-stats">
+        <div class="pstat"><div class="pstat-val text-accent">$${p.cash.toLocaleString()}</div><div class="pstat-lbl">Efectivo</div></div>
+        <div class="pstat"><div class="pstat-val" style="color:var(--blue)">${p.properties.length}</div><div class="pstat-lbl">Propied.</div></div>
+        <div class="pstat"><div class="pstat-val text-green">$${getInvestmentValue(i).toLocaleString()}</div><div class="pstat-lbl">Mercado</div></div>
+      </div>
+      <div class="progress-bar-wrap"><div class="progress-bar" style="background:${p.color};width:${(wealth/maxW*100).toFixed(1)}%"></div></div>
+    </div>`;
+  }).join('');
+}
+function getPlayerWealth(idx){
+  const p=G.players[idx];
+  let w=p.cash;
+  p.properties.forEach(pos=>w+=(BOARD_CELLS[pos].price||0));
+  w+=getInvestmentValue(idx);
+  return w;
+}
+function getInvestmentValue(idx){
+  let v=0;
+  Object.values(G.market).forEach(a=>{const h=a.playerHoldings[idx];if(h&&h.units>0)v+=h.units*a.price;});
+  return v;
+}
+function renderMarket(){
+  const panel=document.getElementById('panel-market');
+  panel.innerHTML=Object.values(G.market).map(a=>{
+    const ch=a.history.length>1?((a.price-a.history[a.history.length-2])/a.history[a.history.length-2]*100).toFixed(1):'0.0';
+    const up=parseFloat(ch)>=0;
+    return `<div class="market-ticker">
+      <div class="ticker-symbol" style="color:${up?'var(--green)':'var(--red)'}">${a.symbol}</div>
+      <div class="ticker-bar">
+        <div class="ticker-name">${a.name}</div>
+        <div class="ticker-price-row">
+          <span class="ticker-price">$${a.price}</span>
+          <span class="ticker-change ${up?'up':'down'}">${up?'+':''}${ch}%</span>
+        </div>
+      </div>
+      <svg class="ticker-sparkline" viewBox="0 0 60 24">${sparklinePath(a.history,up)}</svg>
+    </div>`;
+  }).join('');
+}
+function addLog(icon,actor,text){
+  G.log.unshift({icon,actor,text});
+  if(G.log.length>60) G.log.pop();
+  const p=document.getElementById('panel-log');
+  if(p.style.display!=='none') renderLog();
+}
+function renderLog(){
+  document.getElementById('panel-log').innerHTML=G.log.map(e=>
+    `<div class="log-entry"><div class="log-icon">${e.icon}</div><div class="log-text"><strong>${e.actor}</strong> ${e.text}</div></div>`
+  ).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// TABS
+// ═══════════════════════════════════════════════════════════════════
+function switchTab(tab,el){
+  document.querySelectorAll('.panel-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('panel-players').style.display=tab==='players'?'block':'none';
+  document.getElementById('panel-market').style.display =tab==='market' ?'block':'none';
+  document.getElementById('panel-log').style.display    =tab==='log'   ?'block':'none';
+  if(tab==='log') renderLog();
+}
+function openOverlay(id){document.getElementById(id).classList.add('active');}
+function closeOverlay(id){document.getElementById(id).classList.remove('active');}
+
+// FLASH
+function showFlash(icon,text,positive){
+  const old=document.querySelector('.market-flash');if(old)old.remove();
+  const f=document.createElement('div');
+  f.className='market-flash';
+  f.style.borderColor=positive?'var(--green)':'var(--red)';
+  f.innerHTML='<span style="font-size:17px">'+icon+'</span><span>'+text+'</span>';
+  document.body.appendChild(f);
+  setTimeout(()=>f.remove(),3000);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// END GAME
+// ═══════════════════════════════════════════════════════════════════
+function endGame(){
+  G.players.forEach((p,i)=>{
+    Object.values(G.market).forEach(a=>{const h=a.playerHoldings[i];if(h&&h.units>0){p.cash+=h.units*a.price;h.units=0;}});
+    p.properties.forEach(pos=>p.cash+=Math.floor((BOARD_CELLS[pos].price||0)*.8));
+  });
+  const ranked=G.players.map((p,i)=>({...p,idx:i,wealth:getPlayerWealth(i)})).sort((a,b)=>b.wealth-a.wealth);
+  const winner=ranked[0];
+  document.getElementById('winner-emoji').textContent=winner.avatar;
+  document.getElementById('winner-name').textContent=winner.name;
+  document.getElementById('winner-stats').innerHTML=`
+    <div class="wstat"><div class="wstat-val">$${winner.wealth.toLocaleString()}</div><div class="wstat-lbl">Patrimonio final</div></div>
+    <div class="wstat"><div class="wstat-val">${G.players[winner.idx].properties.length}</div><div class="wstat-lbl">Propiedades</div></div>
+    <div class="wstat"><div class="wstat-val">${G.maxRounds}</div><div class="wstat-lbl">Rondas</div></div>`;
+  spawnConfetti();showScreen('screen-winner');
+}
+
+function spawnConfetti(){
+  const cont=document.getElementById('confetti');
+  const cols=['#F0C040','#30C97A','#4A90E2','#E05A30','#9B6BFF',...G.players.map(p=>p.color)];
+  for(let i=0;i<70;i++){
+    const p=document.createElement('div');
+    p.className='confetti-piece';
+    p.style.left=Math.random()*100+'vw';
+    p.style.background=cols[Math.floor(Math.random()*cols.length)];
+    p.style.animationDuration=(2+Math.random()*4)+'s';
+    p.style.animationDelay=(Math.random()*3)+'s';
+    const sz=6+Math.random()*10;
+    p.style.width=sz+'px';p.style.height=sz+'px';
+    p.style.borderRadius=Math.random()>.5?'50%':'2px';
+    cont.appendChild(p);
+  }
+}
+
+function rematch(){document.getElementById('confetti').innerHTML='';showSetup(G.mode);}
+
+
+// ═══════════════════════════════════════════════════════════════════
+// BOARD RESIZE — measures actual available space and sets board size
+// ═══════════════════════════════════════════════════════════════════
+function resizeBoard(){
+  const wrap = document.querySelector('.board-wrap');
+  const board = document.getElementById('board');
+  if(!wrap || !board) return;
+
+  // Use ALL available space — rectangular board
+  const W = wrap.clientWidth  - 12;   // small padding
+  const H = wrap.clientHeight - 12;
+
+  board.style.width  = W + 'px';
+  board.style.height = H + 'px';
+
+  // Corner size based on the SHORTER side so corners stay readable
+  const shortSide  = Math.min(W, H);
+  const corner     = Math.round(shortSide * 0.10);   // 10% of shorter side
+
+  // Inner cells fill remaining space independently on each axis
+  const innerW = Math.round((W - corner * 2) / 9);   // column width
+  const innerH = Math.round((H - corner * 2) / 9);   // row height
+
+  board.style.gridTemplateColumns = corner + 'px repeat(9,' + innerW + 'px) ' + corner + 'px';
+  board.style.gridTemplateRows    = corner + 'px repeat(9,' + innerH + 'px) ' + corner + 'px';
+
+  // Font & icon sizes — based on the SMALLER of innerW/innerH so nothing clips
+  const cellMin    = Math.min(innerW, innerH);
+
+  const fontSize   = Math.max(8,  Math.round(cellMin * 0.22));
+  const iconSize   = Math.max(16, Math.round(cellMin * 0.52));
+  const priceSize  = Math.max(7,  Math.round(cellMin * 0.18));
+  const cornerIcon = Math.max(26, Math.round(corner  * 0.48));
+  const cornerFont = Math.max(9,  Math.round(corner  * 0.13));
+
+  board.style.setProperty('--cell-font',   fontSize   + 'px');
+  board.style.setProperty('--cell-icon',   iconSize   + 'px');
+  board.style.setProperty('--price-font',  priceSize  + 'px');
+  board.style.setProperty('--corner-icon', cornerIcon + 'px');
+  board.style.setProperty('--corner-font', cornerFont + 'px');
+
+  // Reposition tokens after layout settles
+  if(G && G.players && G.players.length){
+    setTimeout(()=>{ G.players.forEach((_,i)=>placeToken(i, G.players[i].position, true)); }, 60);
+  }
+}
+
+// Reposition tokens when window resizes
+window.addEventListener('resize',()=>{
+  if(document.getElementById('screen-game').classList.contains('active')){
+    resizeBoard();
+  }
+});
+
+// ════════════════════════════════════════════════════════════════════
+// VOICE CHAT — WebRTC mic capture + volume visualiser
+// ════════════════════════════════════════════════════════════════════
+const VC = {
+  stream:    null,    // MediaStream from getUserMedia
+  audioCtx:  null,   // AudioContext
+  analyser:  null,   // AnalyserNode
+  playerIdx: null,   // which player slot is "me"
+  active:    false,  // joined voice?
+  muted:     false,  // mic muted?
+  raf:       null,   // requestAnimationFrame handle
+  pending:   null,   // player idx selected in modal
+};
+
+// ── Render the voice bar ──────────────────────────────────────────
+function vcRenderBar(){
+  const container = document.getElementById('vc-players');
+  const btn       = document.getElementById('vc-btn');
+  const btnIcon   = document.getElementById('vc-btn-icon');
+  const btnTxt    = document.getElementById('vc-btn-txt');
+  if(!container) return;
+
+  if(!VC.active || !G.players.length){
+    container.innerHTML = '<span style="font-size:10px;color:var(--muted);font-family:var(--fm);">Voz desactivada</span>';
+    btn.className = 'mic-btn';
+    btnIcon.textContent = '🎤';
+    btnTxt.textContent  = 'Unirse';
+    return;
+  }
+
+  // Render one tile per player
+  container.innerHTML = G.players.map((p,i) => {
+    const isMe  = i === VC.playerIdx;
+    const muted = isMe && VC.muted;
+    return `<div class="vp-tile${muted?' muted-tile':''}" id="vpt-${i}">
+      <span class="vp-avatar">${p.avatar}</span>
+      <span class="vp-name" style="color:${p.color}">${p.name.split(' ')[0]}</span>
+      ${isMe ? `<div class="vp-bars" id="vpb-${i}">
+        <span style="height:2px"></span><span style="height:4px"></span>
+        <span style="height:2px"></span><span style="height:3px"></span>
+      </div>` : ''}
+      ${isMe ? `<span style="font-size:9px;margin-left:1px">${muted?'🔇':'🟢'}</span>` : ''}
+    </div>`;
+  }).join('');
+
+  // Update button
+  if(VC.muted){
+    btn.className = 'mic-btn mic-off';
+    btnIcon.textContent = '🔇';
+    btnTxt.textContent  = 'Reactivar';
+  } else {
+    btn.className = 'mic-btn mic-on';
+    btnIcon.textContent = '🎤';
+    btnTxt.textContent  = 'Silenciar';
+  }
+}
+
+// ── Button click: join if not active, toggle mute if active ───────
+function vcBtnClick(){
+  if(!VC.active) vcOpenModal();
+  else           vcToggleMute();
+}
+
+// ── Modal open/close ──────────────────────────────────────────────
+function vcOpenModal(){
+  VC.pending = null;
+  const grid = document.getElementById('vmodal-grid');
+  if(grid){
+    grid.innerHTML = G.players.map((p,i) => `
+      <div class="vmodal-card" id="vmc-${i}" onclick="vcPickPlayer(${i})">
+        <div class="vc-av">${p.avatar}</div>
+        <div class="vc-nm" style="color:${p.color}">${p.name}</div>
+      </div>`).join('');
+  }
+  document.getElementById('vc-err').textContent = '';
+  document.getElementById('vmodal-bg').classList.add('open');
+}
+
+function vcCloseModal(){
+  document.getElementById('vmodal-bg').classList.remove('open');
+}
+
+function vcPickPlayer(idx){
+  VC.pending = idx;
+  document.querySelectorAll('.vmodal-card').forEach(c => c.classList.remove('picked'));
+  const card = document.getElementById('vmc-' + idx);
+  if(card) card.classList.add('picked');
+}
+
+// ── Confirm and request mic ────────────────────────────────────────
+async function vcConfirm(){
+  const errEl = document.getElementById('vc-err');
+  errEl.textContent = '';
+  if(VC.pending === null){
+    errEl.textContent = '⚠️ Selecciona tu jugador primero.';
+    return;
+  }
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio:true, video:false });
+    VC.stream    = stream;
+    VC.playerIdx = VC.pending;
+    VC.active    = true;
+    VC.muted     = false;
+
+    // AudioContext for volume analysis
+    VC.audioCtx  = new (window.AudioContext || window.webkitAudioContext)();
+    const src    = VC.audioCtx.createMediaStreamSource(stream);
+    VC.analyser  = VC.audioCtx.createAnalyser();
+    VC.analyser.fftSize = 256;
+    src.connect(VC.analyser);
+
+    vcCloseModal();
+    vcRenderBar();
+    vcStartViz();
+
+    const pName = G.players[VC.playerIdx].name;
+    addLog('🎙️', pName, 'activó el <strong>micrófono</strong>');
+    showFlash('🎙️', pName + ' entró al chat de voz', true);
+
+  } catch(err){
+    let msg = '⚠️ No se pudo acceder al micrófono.';
+    if(err.name === 'NotAllowedError')  msg = '⚠️ Permiso denegado. Actívalo en la barra del navegador.';
+    if(err.name === 'NotFoundError')    msg = '⚠️ No hay micrófono conectado.';
+    if(err.name === 'NotReadableError') msg = '⚠️ Micrófono en uso por otra app.';
+    errEl.textContent = msg;
+  }
+}
+
+// ── Mute toggle ───────────────────────────────────────────────────
+function vcToggleMute(){
+  if(!VC.active || !VC.stream) return;
+  VC.muted = !VC.muted;
+  VC.stream.getAudioTracks().forEach(t => t.enabled = !VC.muted);
+  vcRenderBar();
+  const p = G.players[VC.playerIdx];
+  addLog(VC.muted?'🔇':'🎤', p.name,
+    VC.muted ? '<strong>silenció</strong> el micrófono' : '<strong>reactivó</strong> el micrófono');
+  showFlash(VC.muted?'🔇':'🎤',
+    p.name + (VC.muted ? ' — micrófono silenciado' : ' — micrófono activo'), !VC.muted);
+}
+
+// ── Volume visualiser ─────────────────────────────────────────────
+function vcStartViz(){
+  const buf = new Uint8Array(VC.analyser.frequencyBinCount);
+  function tick(){
+    if(!VC.active){ return; }
+    VC.raf = requestAnimationFrame(tick);
+
+    const tile = document.getElementById('vpt-' + VC.playerIdx);
+    const bars = document.getElementById('vpb-' + VC.playerIdx);
+    if(!tile || !bars) return;
+
+    if(VC.muted){
+      tile.classList.remove('speaking');
+      bars.querySelectorAll('span').forEach(b => b.style.height = '2px');
+      return;
+    }
+
+    VC.analyser.getByteFrequencyData(buf);
+    let sum = 0;
+    // Sample voice frequency range (~80-3000 Hz)
+    for(let i = 2; i < 80; i++) sum += buf[i];
+    const vol = sum / 78;   // 0-255 range
+
+    const talking = vol > 15;
+    if(talking) tile.classList.add('speaking');
+    else        tile.classList.remove('speaking');
+
+    // Animate 4 bars
+    const bEls = bars.querySelectorAll('span');
+    bEls.forEach((b, i) => {
+      const h = talking
+        ? Math.min(11, Math.max(2, Math.round(vol * 0.07 * (0.5 + Math.random()))))
+        : [2,3,2,2][i];
+      b.style.height = h + 'px';
+    });
+  }
+  tick();
+}
+
+// ── Leave / cleanup ───────────────────────────────────────────────
+function vcLeave(){
+  if(!VC.active) return;
+  if(VC.raf)     cancelAnimationFrame(VC.raf);
+  if(VC.stream)  VC.stream.getTracks().forEach(t => t.stop());
+  if(VC.audioCtx && VC.audioCtx.state !== 'closed') VC.audioCtx.close();
+  VC.stream = null; VC.audioCtx = null; VC.analyser = null;
+  VC.active = false; VC.muted = false; VC.playerIdx = null; VC.raf = null;
+  vcRenderBar();
+}
+
+</script>
+</body>
+</html>
