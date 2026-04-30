@@ -1,0 +1,2342 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>BusinessPlay — El Juego de la Riqueza Real</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap');
+/* ── CSS VARIABLES ─────────────────────────────────────────────── */
+:root{
+  --bg:#0A0B0F; --s1:#12141A; --s2:#1A1D26; --s3:#22263A;
+  --bd:#2A2E42; --ac:#F0C040; --ac2:#E05A30;
+  --gr:#30C97A; --rd:#E04A4A; --bl:#4A90E2; --pu:#9B6BFF;
+  --tx:#E8EAF0; --mu:#7A7E92; --lg:#EEEEEE;
+  --fh:'Syne',sans-serif; --fb:'DM Sans',sans-serif; --fm:'DM Mono',monospace;
+  /* responsive sidebar width */
+  --sidebar:300px;
+  /* responsive topbar height */
+  --topbar:48px;
+}
+/* ── RESET ─────────────────────────────────────────────────────── */
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow:hidden;}
+body{background:var(--bg);color:var(--tx);font-family:var(--fb);}
+button{cursor:pointer;border:none;background:none;color:inherit;font-family:inherit;}
+input{font-family:inherit;}
+
+/* ── SCREENS ───────────────────────────────────────────────────── */
+.screen{display:none;width:100%;height:100%;}
+.screen.active{display:flex;flex-direction:column;}
+
+/* ════════════════════════════════════════════════════════════════
+   INTRO
+════════════════════════════════════════════════════════════════ */
+#screen-intro{
+  align-items:center;justify-content:center;overflow-y:auto;
+  background:radial-gradient(ellipse at 30% 20%,#1A1830 0%,var(--bg) 60%),
+             radial-gradient(ellipse at 80% 80%,#1A1010 0%,transparent 50%);
+  position:relative;
+}
+#screen-intro::before{content:'';position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(var(--bd) 1px,transparent 1px) 0 0/60px 60px,
+             linear-gradient(90deg,var(--bd) 1px,transparent 1px) 0 0/60px 60px;
+  opacity:.2;}
+.intro-wrap{position:relative;z-index:1;text-align:center;
+  width:100%;max-width:700px;padding:32px 20px;margin:auto;}
+.intro-logo{font-family:var(--fh);font-weight:800;letter-spacing:-2px;line-height:1;
+  font-size:clamp(44px,10vw,88px);
+  background:linear-gradient(135deg,var(--ac),#FF9500,var(--ac2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:6px;}
+.intro-tag{font-size:clamp(10px,2vw,14px);font-weight:300;letter-spacing:3px;
+  color:var(--mu);text-transform:uppercase;margin-bottom:28px;}
+.intro-badge{display:inline-flex;gap:8px;align-items:center;background:var(--s1);
+  border:1px solid var(--bd);padding:7px 16px;border-radius:100px;margin-bottom:28px;
+  font-size:12px;color:var(--mu);font-family:var(--fm);}
+.intro-badge i{width:6px;height:6px;border-radius:50%;background:var(--gr);
+  animation:pulse 2s infinite;display:inline-block;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:24px;}
+.mode-card{background:var(--s1);border:1px solid var(--bd);border-radius:14px;
+  padding:24px 20px;cursor:pointer;transition:all .2s;text-align:left;
+  position:relative;-webkit-tap-highlight-color:transparent;}
+.mode-card:hover,.mode-card:active{border-color:var(--ac);transform:translateY(-1px);}
+.mode-card .mc-tag{position:absolute;top:14px;right:14px;background:var(--s2);
+  border:1px solid var(--bd);font-size:9px;font-family:var(--fm);
+  padding:2px 7px;border-radius:100px;color:var(--mu);}
+.mode-card .mc-icon{font-size:28px;margin-bottom:10px;}
+.mode-card h3{font-family:var(--fh);font-size:16px;font-weight:700;margin-bottom:5px;}
+.mode-card p{font-size:12px;color:var(--mu);line-height:1.5;}
+.intro-chips{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;}
+.chip{font-size:11px;color:var(--mu);font-family:var(--fm);background:var(--s1);
+  border:1px solid var(--bd);padding:4px 12px;border-radius:100px;}
+
+/* ════════════════════════════════════════════════════════════════
+   SETUP
+════════════════════════════════════════════════════════════════ */
+#screen-setup{overflow-y:auto;align-items:center;background:var(--bg);}
+.setup-wrap{width:100%;max-width:860px;padding:28px 20px;margin:auto;}
+.setup-hd{margin-bottom:28px;}
+.setup-hd h2{font-family:var(--fh);font-size:clamp(22px,5vw,32px);font-weight:800;margin-bottom:4px;}
+.setup-hd p{color:var(--mu);font-size:13px;}
+.sec-title{font-family:var(--fm);font-size:10px;font-weight:500;color:var(--ac);
+  text-transform:uppercase;letter-spacing:2px;margin-bottom:12px;
+  display:flex;align-items:center;gap:8px;}
+.sec-title::after{content:'';flex:1;height:1px;background:var(--bd);}
+.sec{margin-bottom:24px;}
+/* Online lobby */
+.lobby-box{background:var(--s2);border:1px solid var(--bd);border-radius:12px;
+  padding:18px;margin-bottom:20px;}
+.lobby-tabs{display:flex;gap:0;border-radius:8px;overflow:hidden;
+  border:1px solid var(--bd);margin-bottom:16px;}
+.ltab{flex:1;padding:9px;text-align:center;font-size:12px;font-family:var(--fm);
+  cursor:pointer;transition:all .2s;color:var(--mu);}
+.ltab.active{background:var(--ac);color:#000;font-weight:700;}
+.lobby-panel{display:none;}.lobby-panel.active{display:block;}
+.room-code{font-family:var(--fm);font-size:clamp(18px,3.5vw,26px);font-weight:700;
+  color:var(--ac);letter-spacing:5px;text-align:center;margin:12px 0;
+  background:var(--s1);border:1px solid var(--bd);border-radius:8px;
+  padding:12px 16px;cursor:pointer;transition:border-color .2s;word-break:break-all;}
+.room-code:hover{border-color:var(--ac);}
+.lobby-status{font-size:12px;color:var(--mu);text-align:center;font-family:var(--fm);margin-top:6px;}
+.lobby-players-list{display:flex;flex-direction:column;gap:6px;margin-top:10px;width:100%;}
+.lobby-player-chip{width:100%;}
+.lobby-player-chip.me{border-color:var(--ac)!important;}
+/* Level grid */
+.level-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.lv-card{border:2px solid var(--bd);border-radius:12px;padding:16px 12px;
+  cursor:pointer;transition:all .2s;text-align:center;}
+.lv-card.sel{border-color:var(--ac);background:rgba(240,192,64,.06);}
+.lv-card .lv-icon{font-size:24px;margin-bottom:6px;}
+.lv-card .lv-name{font-family:var(--fh);font-size:13px;font-weight:700;margin-bottom:3px;}
+.lv-card .lv-desc{font-size:10px;color:var(--mu);line-height:1.4;}
+.lv-card.principiante.sel{border-color:var(--gr);}
+.lv-card.intermedio.sel{border-color:var(--bl);}
+.lv-card.experto.sel{border-color:var(--pu);}
+/* Players grid */
+.players-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+@media(max-width:640px){.players-grid{grid-template-columns:1fr 1fr;}}
+.p-setup{background:var(--s1);border:1px solid var(--bd);border-radius:12px;
+  padding:13px;position:relative;}
+.p-av{font-size:20px;margin-bottom:5px;}
+.av-sel{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:7px;}
+.av-opt{font-size:18px;cursor:pointer;padding:3px;border-radius:5px;
+  border:2px solid transparent;opacity:.5;transition:all .15s;}
+.av-opt.sel{border-color:var(--ac);opacity:1;}
+.p-input{width:100%;background:var(--s2);border:1px solid var(--bd);
+  border-radius:8px;padding:7px 9px;color:var(--tx);font-size:12px;outline:none;}
+.p-input:focus{border-color:var(--ac);}
+.p-tog{position:absolute;top:10px;right:10px;background:var(--s2);
+  border:1px solid var(--bd);border-radius:100px;width:30px;height:17px;
+  cursor:pointer;transition:all .2s;display:flex;align-items:center;padding:2px;}
+.p-tog.on{background:var(--gr);border-color:var(--gr);justify-content:flex-end;}
+.p-tog::after{content:'';width:13px;height:13px;background:#fff;border-radius:50%;}
+/* Rounds */
+.rounds-row{display:flex;gap:8px;}
+.rnd{flex:1;background:var(--s1);border:2px solid var(--bd);border-radius:10px;
+  padding:11px;text-align:center;cursor:pointer;transition:all .2s;
+  font-family:var(--fh);font-size:17px;font-weight:700;}
+.rnd.sel{border-color:var(--ac);color:var(--ac);}
+.rnd small{display:block;font-family:var(--fb);font-size:10px;
+  font-weight:400;color:var(--mu);margin-top:2px;}
+/* Buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  padding:12px 22px;border-radius:10px;font-family:var(--fh);
+  font-size:14px;font-weight:700;cursor:pointer;transition:all .2s;}
+.btn-p{background:linear-gradient(135deg,var(--ac),#FF9500);color:#000;}
+.btn-p:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(240,192,64,.35);}
+.btn-p:active{transform:none;}
+.btn-g{background:transparent;border:1px solid var(--bd);color:var(--mu);}
+.btn-g:hover{border-color:var(--tx);color:var(--tx);}
+.btn-r{background:var(--rd);color:#fff;}
+.btn-row{display:flex;gap:10px;margin-top:6px;}
+
+/* ════════════════════════════════════════════════════════════════
+   GAME SCREEN  —  responsive layout
+   Desktop:  topbar + (board-area | sidebar)  row
+   Mobile:   topbar + board + bottom-panel    column
+════════════════════════════════════════════════════════════════ */
+#screen-game{flex-direction:column;height:100%;overflow:hidden;}
+.game-topbar{
+  height:var(--topbar);flex-shrink:0;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 12px;background:var(--s1);border-bottom:1px solid var(--bd);gap:8px;}
+.topbar-logo{font-family:var(--fh);font-size:clamp(14px,3vw,18px);font-weight:800;
+  background:linear-gradient(135deg,var(--ac),#FF9500);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;white-space:nowrap;flex-shrink:0;}
+.topbar-mid{display:flex;align-items:center;gap:6px;flex:1;justify-content:center;overflow:hidden;}
+.round-pill{background:var(--s2);border:1px solid var(--bd);border-radius:100px;
+  padding:3px 10px;font-family:var(--fm);font-size:10px;color:var(--mu);white-space:nowrap;}
+.lv-badge{padding:3px 9px;border-radius:100px;font-size:10px;font-family:var(--fm);font-weight:500;white-space:nowrap;}
+.lv-badge.principiante{background:rgba(48,201,122,.15);color:var(--gr);}
+.lv-badge.intermedio{background:rgba(74,144,226,.15);color:var(--bl);}
+.lv-badge.experto{background:rgba(155,107,255,.15);color:var(--pu);}
+.topbar-right{display:flex;gap:6px;flex-shrink:0;}
+.tb-btn{padding:6px 11px;border-radius:8px;font-size:11px;font-family:var(--fh);
+  font-weight:700;cursor:pointer;transition:all .2s;border:1px solid var(--bd);
+  color:var(--mu);background:transparent;white-space:nowrap;}
+.tb-btn:hover{border-color:var(--ac);color:var(--ac);}
+.tb-btn.inv{background:linear-gradient(135deg,var(--ac),#FF9500);color:#000;border-color:transparent;}
+
+/* Middle area splits board + sidebar on desktop */
+.game-body{flex:1;display:flex;overflow:hidden;min-height:0;}
+.board-area{flex:1;display:flex;padding:6px;min-width:0;min-height:0;overflow:hidden;}
+/* THE BOARD — CSS fills board-area, JS only computes grid columns/rows */
+#board{display:grid;background:var(--s1);border:2px solid var(--bd);
+  border-radius:10px;position:relative;overflow:hidden;
+  width:100%;height:100%;min-width:0;min-height:0;}
+/* Sidebar */
+.sidebar{width:var(--sidebar);flex-shrink:0;background:var(--s1);
+  border-left:1px solid var(--bd);display:flex;flex-direction:column;overflow:hidden;}
+
+/* MOBILE bottom panel replaces sidebar */
+@media(max-width:767px){
+  :root{--sidebar:100%;--topbar:44px;}
+  #screen-game.active{flex-direction:column;}
+  .game-body{flex-direction:column;}
+  .board-area{flex:1;padding:4px;min-height:0;}
+  .sidebar{width:100%;flex-shrink:0;height:240px;border-left:none;border-top:1px solid var(--bd);}
+  .intro-modes{grid-template-columns:1fr;}
+  .level-grid{grid-template-columns:1fr 1fr 1fr;}
+  .mode-card{padding:18px 14px;}
+  .mode-card .mc-icon{font-size:22px;margin-bottom:6px;}
+}
+@media(min-width:768px) and (max-width:1023px){
+  :root{--sidebar:260px;}
+}
+
+/* Sidebar tabs */
+.s-tabs{display:flex;border-bottom:1px solid var(--bd);flex-shrink:0;}
+.s-tab{flex:1;padding:10px 4px;text-align:center;font-size:10px;font-family:var(--fm);
+  cursor:pointer;color:var(--mu);border-bottom:2px solid transparent;
+  transition:all .2s;text-transform:uppercase;letter-spacing:.8px;}
+.s-tab.active{color:var(--ac);border-bottom-color:var(--ac);}
+.s-panel{flex:1;overflow-y:auto;padding:12px;
+  scrollbar-width:thin;scrollbar-color:var(--bd) transparent;}
+.s-panel::-webkit-scrollbar{width:4px;}
+.s-panel::-webkit-scrollbar-thumb{background:var(--bd);}
+/* Player cards */
+.p-card{background:var(--s2);border:1px solid var(--bd);border-radius:10px;
+  padding:11px;margin-bottom:8px;transition:all .2s;}
+.p-card.cur{border-color:var(--ac);background:rgba(240,192,64,.05);
+  box-shadow:0 0 16px rgba(240,192,64,.1);}
+.p-card-top{display:flex;align-items:center;gap:8px;margin-bottom:7px;}
+.p-em{font-size:20px;}
+.p-inf{flex:1;min-width:0;}
+.p-nm{font-family:var(--fh);font-size:12px;font-weight:700;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.p-pos{font-size:10px;color:var(--mu);font-family:var(--fm);}
+.p-wl{font-family:var(--fm);font-size:13px;font-weight:500;color:var(--ac);}
+.p-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;}
+.pst{background:var(--s1);border-radius:6px;padding:5px 6px;text-align:center;}
+.pst-v{font-family:var(--fm);font-size:11px;font-weight:500;}
+.pst-l{font-size:8px;color:var(--mu);text-transform:uppercase;margin-top:1px;}
+.pbar-w{background:var(--s2);border-radius:100px;height:4px;overflow:hidden;margin-top:5px;}
+.pbar{height:100%;border-radius:100px;transition:width .6s;}
+/* Market tickers */
+.ticker{background:var(--s2);border:1px solid var(--bd);border-radius:10px;
+  padding:9px;margin-bottom:7px;display:flex;align-items:center;gap:8px;
+  cursor:pointer;transition:border-color .2s;}
+.ticker:hover{border-color:var(--ac);}
+.t-sym{font-family:var(--fm);font-size:11px;font-weight:500;width:42px;flex-shrink:0;}
+.t-bar{flex:1;min-width:0;}
+.t-name{font-size:9px;color:var(--mu);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.t-row{display:flex;align-items:center;justify-content:space-between;}
+.t-price{font-family:var(--fm);font-size:12px;}
+.t-chg{font-family:var(--fm);font-size:10px;padding:2px 5px;border-radius:4px;font-weight:500;}
+.t-chg.up{background:rgba(48,201,122,.15);color:var(--gr);}
+.t-chg.dn{background:rgba(224,74,74,.15);color:var(--rd);}
+.t-spark{width:50px;height:20px;flex-shrink:0;}
+/* Log */
+.log-row{display:flex;gap:7px;padding:7px 0;border-bottom:1px solid var(--bd);
+  font-size:11px;animation:fadeIn .25s;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:none}}
+.log-row:last-child{border:none;}
+.log-ic{font-size:13px;flex-shrink:0;}
+.log-tx{color:var(--mu);line-height:1.4;}
+.log-tx strong{color:var(--tx);}
+
+/* ACTION ZONE */
+.action-zone{border-top:1px solid var(--bd);padding:12px;flex-shrink:0;}
+/* Turn banner */
+.turn-banner{display:flex;align-items:center;gap:8px;padding:8px 10px;
+  border-radius:8px;background:var(--s2);border:1px solid var(--bd);margin-bottom:10px;}
+.tb-av{font-size:20px;}
+.tb-info{flex:1;min-width:0;}
+.tb-lbl{font-size:9px;color:var(--mu);font-family:var(--fm);text-transform:uppercase;letter-spacing:1px;}
+.tb-nm{font-family:var(--fh);font-size:13px;font-weight:700;}
+.tb-cash{font-family:var(--fm);font-size:12px;color:var(--ac);flex-shrink:0;}
+/* Dice */
+.dice-row{display:flex;gap:8px;align-items:center;margin-bottom:9px;}
+.die{width:46px;height:46px;background:var(--s2);border:2px solid var(--bd);
+  border-radius:10px;display:flex;align-items:center;justify-content:center;
+  font-size:24px;transition:all .15s;flex-shrink:0;}
+.die.rolling{animation:dieRoll .8s ease-out;}
+@keyframes dieRoll{
+  0%{transform:rotate(0) scale(1);filter:blur(0);}
+  20%{transform:rotate(-18deg) scale(1.12);filter:blur(1.5px);}
+  40%{transform:rotate(12deg) scale(.92);filter:blur(2px);}
+  60%{transform:rotate(-7deg) scale(1.07);filter:blur(1px);}
+  80%{transform:rotate(3deg) scale(1.03);filter:blur(.5px);}
+  100%{transform:rotate(0) scale(1);filter:blur(0);}
+}
+.dice-total{display:flex;flex-direction:column;gap:1px;}
+.dice-total-l{font-size:9px;color:var(--mu);}
+.dice-total-n{font-family:var(--fm);font-size:22px;font-weight:700;color:var(--ac);}
+.act-row{display:flex;gap:7px;}
+.act-btn{flex:1;padding:10px;border-radius:8px;font-size:13px;font-family:var(--fh);
+  font-weight:700;cursor:pointer;border:none;transition:all .2s;text-align:center;}
+.act-btn-p{background:linear-gradient(135deg,var(--ac),#FF9500);color:#000;}
+.act-btn-p:active{transform:scale(.97);}
+.act-btn-p:disabled{opacity:.4;cursor:not-allowed;}
+.act-btn-g{background:var(--s2);border:1px solid var(--bd);color:var(--mu);}
+.act-btn-g:hover{border-color:var(--tx);color:var(--tx);}
+
+/* ── BOARD CELLS ────────────────────────────────────────────── */
+.cell{border:1px solid var(--bd);display:flex;flex-direction:column;
+  align-items:center;justify-content:center;cursor:pointer;
+  position:relative;transition:background .15s;overflow:hidden;padding:1px;
+  min-width:0;min-height:0;box-sizing:border-box;}
+/* Left column cells (col 1): rotate content */
+.cell.col-left{flex-direction:row;}
+.cell.col-left .cell-icon{writing-mode:initial;}
+/* Right column cells (col 11): rotate content */  
+.cell.col-right{flex-direction:row;}
+.cell:hover{background:rgba(255,255,255,.04);}
+.cell-bar{position:absolute;top:0;left:0;right:0;height:6px;}
+.cell-icon{font-size:var(--ci,16px);line-height:1;}
+.cell-name{font-size:var(--cn,8px);text-align:center;color:var(--tx);
+  line-height:1.2;font-family:var(--fm);width:100%;
+  overflow:hidden;text-overflow:ellipsis;display:-webkit-box;
+  -webkit-line-clamp:2;-webkit-box-orient:vertical;font-weight:600;}
+.cell-price{font-size:var(--cp,7px);font-family:var(--fm);color:var(--ac);font-weight:600;}
+.cell-own{position:absolute;bottom:0;left:0;right:0;height:4px;}
+.cell.corner{background:var(--s2)!important;}
+.cell.corner .cell-icon{font-size:var(--cc,26px);}
+.corner-lbl{font-size:var(--cf,9px);font-family:var(--fh);font-weight:700;
+  color:var(--tx);text-align:center;line-height:1.2;margin-top:2px;
+  word-break:break-word;max-width:90%;}
+/* Center */
+.board-center{grid-column:2/11;grid-row:2/11;background:var(--bg);
+  border:1px solid var(--bd);display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:8px;position:relative;overflow:hidden;}
+.board-center::before{content:'';position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(var(--bd) 1px,transparent 1px) 0 0/36px 36px,
+             linear-gradient(90deg,var(--bd) 1px,transparent 1px) 0 0/36px 36px;
+  opacity:.12;}
+.bc-logo{font-family:var(--fh);font-weight:800;
+  font-size:clamp(20px,3.5vw,48px);
+  background:linear-gradient(135deg,var(--ac),#FF9500);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  letter-spacing:-1px;z-index:1;white-space:nowrap;}
+.bc-sub{font-size:clamp(8px,1vw,12px);color:var(--mu);letter-spacing:2px;
+  text-transform:uppercase;font-family:var(--fm);z-index:1;}
+.bc-players{display:flex;gap:5px;z-index:1;flex-wrap:wrap;justify-content:center;}
+.bc-stats{display:grid;grid-template-columns:1fr 1fr;gap:5px;z-index:1;width:min(190px,55%);}
+.bc-stat{background:rgba(255,255,255,.04);border:1px solid var(--bd);
+  border-radius:8px;padding:5px 8px;text-align:center;}
+.bc-sv{font-family:var(--fm);font-size:clamp(12px,1.5vw,18px);font-weight:500;color:var(--ac);}
+.bc-sl{font-size:clamp(7px,.8vw,10px);color:var(--mu);text-transform:uppercase;letter-spacing:.5px;}
+/* Tokens */
+.token{position:absolute;font-size:16px;display:flex;align-items:center;
+  justify-content:center;z-index:20;pointer-events:none;width:22px;height:22px;
+  border-radius:50%;
+  transition:left .45s cubic-bezier(.34,1.56,.64,1),top .45s cubic-bezier(.34,1.56,.64,1);
+  filter:drop-shadow(0 3px 6px rgba(0,0,0,.9));}
+
+/* ── VOICE BAR ─────────────────────────────────────────────── */
+.vc-bar{display:flex;align-items:center;gap:6px;padding:6px 10px;
+  background:var(--s1);border-top:1px solid var(--bd);flex-shrink:0;}
+.vc-list{display:flex;gap:5px;flex:1;flex-wrap:wrap;align-items:center;}
+.vp-tile{display:flex;align-items:center;gap:3px;background:var(--s2);
+  border:1px solid var(--bd);border-radius:20px;padding:3px 8px 3px 5px;
+  font-size:11px;transition:all .2s;}
+.vp-tile.speaking{border-color:var(--gr);background:rgba(48,201,122,.1);
+  box-shadow:0 0 8px rgba(48,201,122,.28);}
+.vp-tile.muted-t{opacity:.4;}
+.vp-av{font-size:13px;}.vp-nm{font-family:var(--fm);font-size:9px;max-width:48px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.vp-bars{display:flex;gap:1px;align-items:flex-end;height:11px;margin-left:2px;}
+.vp-bars span{width:2px;background:var(--gr);border-radius:1px;transition:height .08s;}
+.vc-btn{display:flex;align-items:center;gap:5px;background:var(--s2);
+  border:1.5px solid var(--bd);border-radius:20px;padding:5px 10px;cursor:pointer;
+  font-family:var(--fm);font-size:10px;color:var(--tx);transition:all .2s;flex-shrink:0;}
+.vc-btn:hover{border-color:var(--ac);}
+.vc-btn.on{background:rgba(48,201,122,.1);border-color:var(--gr);color:var(--gr);}
+.vc-btn.muted{background:rgba(224,74,74,.08);border-color:var(--rd);color:var(--rd);}
+
+/* ── OVERLAYS ────────────────────────────────────────────────── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);
+  display:none;align-items:center;justify-content:center;z-index:1000;
+  padding:16px;overflow-y:auto;}
+.overlay.open{display:flex;}
+.modal{background:var(--s1);border:1px solid var(--bd);border-radius:18px;
+  padding:clamp(18px,4vw,28px);max-width:480px;width:100%;
+  max-height:90vh;overflow-y:auto;
+  animation:pop .22s cubic-bezier(.34,1.56,.64,1);}
+@keyframes pop{from{transform:scale(.9) translateY(16px);opacity:0}to{transform:none;opacity:1}}
+.m-icon{font-size:40px;text-align:center;margin-bottom:12px;}
+.m-title{font-family:var(--fh);font-size:clamp(18px,4vw,22px);font-weight:800;
+  text-align:center;margin-bottom:6px;}
+.m-sub{color:var(--mu);font-size:12px;text-align:center;margin-bottom:18px;line-height:1.5;}
+.m-box{background:var(--s2);border:1px solid var(--bd);border-radius:10px;
+  padding:13px;margin-bottom:14px;}
+.m-row{display:flex;justify-content:space-between;padding:4px 0;font-size:12px;}
+.m-row .ml{color:var(--mu);}
+.m-row .mv{font-family:var(--fm);font-weight:500;}
+.m-row.total .mv{color:var(--ac);font-size:14px;}
+.m-acts{display:flex;gap:8px;}
+.m-acts .btn{flex:1;}
+.sep{height:1px;background:var(--bd);margin:8px 0;}
+/* Question */
+.q-opts{display:grid;gap:7px;margin-bottom:14px;}
+.q-opt{background:var(--s2);border:2px solid var(--bd);border-radius:10px;
+  padding:10px 13px;cursor:pointer;font-size:12px;transition:all .2s;line-height:1.4;}
+.q-opt:hover{border-color:var(--ac);}
+.q-opt.correct{border-color:var(--gr);background:rgba(48,201,122,.1);color:var(--gr);}
+.q-opt.wrong{border-color:var(--rd);background:rgba(224,74,74,.1);color:var(--rd);}
+.q-res{display:none;text-align:center;padding:10px;border-radius:8px;
+  margin-bottom:10px;font-size:12px;line-height:1.5;}
+/* Invest */
+.inv-input{width:100%;background:var(--s2);border:1px solid var(--bd);
+  border-radius:8px;padding:9px 12px;color:var(--tx);font-family:var(--fm);
+  font-size:15px;outline:none;transition:border-color .2s;}
+.inv-input:focus{border-color:var(--ac);}
+.presets{display:flex;gap:5px;margin-top:7px;}
+.preset{background:var(--s2);border:1px solid var(--bd);border-radius:6px;
+  padding:4px 9px;font-size:11px;font-family:var(--fm);cursor:pointer;transition:all .2s;}
+.preset:hover{border-color:var(--ac);color:var(--ac);}
+/* Voice modal */
+.vc-modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:16px;}
+.vc-m-card{background:var(--s2);border:2px solid var(--bd);border-radius:10px;
+  padding:10px 7px;cursor:pointer;transition:all .2s;text-align:center;}
+.vc-m-card:hover{border-color:var(--ac);}
+.vc-m-card.picked{border-color:var(--ac);background:rgba(240,192,64,.07);}
+.vc-m-card .mc-av{font-size:22px;margin-bottom:3px;}
+.vc-m-card .mc-nm{font-size:10px;font-family:var(--fm);}
+.verr{color:var(--rd);font-size:11px;margin-top:8px;min-height:14px;text-align:center;}
+
+/* ── ONLINE STATUS INDICATOR ────────────────────────────────── */
+.online-dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0;}
+.online-dot.connecting{background:var(--ac);animation:pulse 1s infinite;}
+.online-dot.connected{background:var(--gr);}
+.online-dot.offline{background:var(--rd);}
+.online-panel{background:var(--s2);border:1px solid var(--bd);border-radius:10px;
+  padding:10px 12px;margin-bottom:12px;font-size:12px;}
+.online-panel .op-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.online-panel .op-id{font-family:var(--fm);font-size:11px;color:var(--mu);}
+
+/* ── FLASH ──────────────────────────────────────────────────── */
+.flash{position:fixed;top:14px;right:14px;background:var(--s1);
+  border:1px solid var(--bd);border-radius:12px;padding:10px 14px;
+  z-index:9999;font-size:12px;display:flex;align-items:center;gap:8px;
+  animation:flashIn .3s, flashOut .3s 2.7s forwards;
+  max-width:min(260px,90vw);pointer-events:none;}
+@keyframes flashIn{from{transform:translateX(60px);opacity:0}to{transform:none;opacity:1}}
+@keyframes flashOut{to{opacity:0}}
+
+/* ── WINNER ─────────────────────────────────────────────────── */
+#screen-winner{align-items:center;justify-content:center;overflow-y:auto;
+  background:radial-gradient(ellipse at center,#1A1510 0%,var(--bg) 70%);}
+.winner-wrap{text-align:center;max-width:560px;padding:40px 20px;margin:auto;}
+.w-em{font-size:clamp(56px,10vw,72px);margin-bottom:16px;animation:bounce 1s infinite;}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.w-title{font-family:var(--fh);font-size:clamp(36px,8vw,48px);font-weight:800;
+  background:linear-gradient(135deg,var(--ac),#FF9500);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:6px;}
+.w-name{font-family:var(--fh);font-size:clamp(22px,5vw,28px);font-weight:700;margin-bottom:26px;}
+.w-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:32px;}
+.ws{background:var(--s1);border:1px solid var(--bd);border-radius:12px;padding:16px 12px;}
+.ws-v{font-family:var(--fm);font-size:clamp(16px,3vw,20px);font-weight:500;color:var(--ac);margin-bottom:4px;}
+.ws-l{font-size:10px;color:var(--mu);text-transform:uppercase;letter-spacing:1px;}
+.confetti-wrap{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:0;}
+.cf{position:absolute;top:-20px;animation:cfFall linear infinite;border-radius:2px;}
+@keyframes cfFall{to{transform:translateY(110vh) rotate(720deg);}}
+</style>
+</head>
+<body>
+
+<!-- ═══════════ INTRO ══════════════════════════════════════════════ -->
+<div id="screen-intro" class="screen active">
+  <div class="intro-wrap">
+    <div class="intro-logo">BusinessPlay</div>
+    <div class="intro-tag">El Juego de la Riqueza Real</div>
+    <div class="intro-badge"><i></i>2–4 jugadores · 3 niveles · Online & Local</div>
+    <div class="mode-grid">
+      <div class="mode-card" onclick="showSetup('local')">
+        <span class="mc-tag">GRATIS</span>
+        <div class="mc-icon">🖥️</div>
+        <h3>Juego Local</h3>
+        <p>Hasta 4 jugadores en la misma pantalla, turnos alternativos.</p>
+      </div>
+      <div class="mode-card" onclick="showSetup('online')">
+        <span class="mc-tag">ONLINE</span>
+        <div class="mc-icon">🌐</div>
+        <h3>Juego Online</h3>
+        <p>Crea una sala y comparte el código. Juega con amigos en cualquier lugar.</p>
+      </div>
+    </div>
+    <div class="intro-chips">
+      <span class="chip">🎓 Aprende mientras juegas</span>
+      <span class="chip">📈 Mercado dinámico</span>
+      <span class="chip">🏆 3 niveles</span>
+      <span class="chip">🎙️ Chat de voz</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ SETUP ══════════════════════════════════════════════ -->
+<div id="screen-setup" class="screen">
+  <div class="setup-wrap">
+    <div class="setup-hd">
+      <h2 id="setup-title">Configurar Partida Local</h2>
+      <p id="setup-sub">Elige el nivel, los jugadores y la duración.</p>
+    </div>
+
+    <!-- ONLINE LOBBY -->
+    <div id="online-lobby" class="sec" style="display:none">
+      <div class="sec-title">Sala Online</div>
+      <div class="lobby-box">
+        <div class="lobby-tabs">
+          <div class="ltab active" id="ltab-host" onclick="lobbyTab('host')">Crear sala</div>
+          <div class="ltab" id="ltab-join" onclick="lobbyTab('join')">Unirse</div>
+        </div>
+        <!-- HOST PANEL -->
+        <div class="lobby-panel active" id="lpanel-host">
+          <div class="online-panel">
+            <div class="op-row">
+              <span class="online-dot connecting" id="dot-host"></span>
+              <span id="status-host" style="font-family:var(--fm);font-size:11px;color:var(--mu)">Generando sala…</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;margin-top:4px;">
+              <span style="font-size:10px;color:var(--mu);font-family:var(--fm);">Jugadores en sala:</span>
+              <span id="lobby-count-badge" style="background:var(--ac);color:#000;font-family:var(--fm);
+                font-size:10px;font-weight:700;padding:2px 8px;border-radius:100px;">1</span>
+            </div>
+            <div style="margin-bottom:12px;">
+              <div style="font-size:11px;color:var(--mu);margin-bottom:6px;font-family:var(--fm);">Tu nombre</div>
+              <input id="host-name" class="p-input" placeholder="Tu nombre en el juego"
+                value="Jugador 1"
+                oninput="
+                  const n=this.value.trim()||'Jugador 1';
+                  pConfigs[0].name=n;
+                  if(roomId&&onlinePlayers[roomId]){
+                    onlinePlayers[roomId].name=n;
+                    renderLobbyPlayers();
+                  }
+                ">
+            </div>
+            <div style="text-align:center;">
+              <div style="font-size:10px;color:var(--mu);margin-bottom:4px;font-family:var(--fm);">Código de sala</div>
+              <div class="room-code" id="room-code-display" onclick="copyCode()" title="Clic para copiar">——</div>
+              <button class="btn btn-g" style="font-size:11px;padding:7px 14px;margin-top:6px;" onclick="copyCode()">📋 Copiar código</button>
+              <div style="font-size:10px;color:var(--mu);margin-top:8px;text-align:center;font-family:var(--fm);line-height:1.5;">
+                📱 Comparte este código exactamente como aparece.<br>Los jugadores deben escribirlo en "Unirse".
+              </div>
+            </div>
+          </div>
+          <div style="font-size:11px;color:var(--mu);margin-bottom:8px;font-family:var(--fm);">Jugadores conectados:</div>
+          <div class="lobby-players-list" id="lobby-players-list">
+            <span style="font-size:11px;color:var(--mu);">Esperando jugadores…</span>
+          </div>
+        </div>
+        <!-- JOIN PANEL -->
+        <div class="lobby-panel" id="lpanel-join">
+          <div style="margin-bottom:12px;">
+            <div style="font-size:11px;color:var(--mu);margin-bottom:8px;font-family:var(--fm);">Tu nombre</div>
+            <input id="join-name" class="p-input" placeholder="Tu nombre en el juego" value="Jugador 2" style="margin-bottom:10px;" oninput="pConfigs[1].name=this.value.trim()||'Jugador 2'">
+            <div style="font-size:11px;color:var(--mu);margin-bottom:8px;font-family:var(--fm);">Código de sala</div>
+            <div style="display:flex;gap:8px;">
+              <input id="join-code" class="p-input" placeholder="Ej: BPAB3F72" 
+                oninput="this.value=this.value.toUpperCase()"
+                style="text-transform:uppercase;letter-spacing:3px;font-family:var(--fm);font-size:14px;flex:1;" maxlength="12">
+              <button class="btn btn-p" style="padding:10px 16px;font-size:13px;" onclick="joinRoom()">Unirse →</button>
+            </div>
+          </div>
+          <div class="online-panel" id="join-status-panel" style="display:none;">
+            <div class="op-row">
+              <span class="online-dot connecting" id="dot-join"></span>
+              <span id="status-join" style="font-family:var(--fm);font-size:11px;color:var(--mu)">Conectando…</span>
+            </div>
+            <div style="font-size:10px;color:var(--mu);margin-top:4px;font-family:var(--fm);line-height:1.4;">
+              💡 El host debe tener la sala abierta y activa para poder conectarse.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-title">Nivel de Dificultad</div>
+      <div class="level-grid">
+        <div class="lv-card principiante sel" onclick="selectLevel('principiante',this)">
+          <div class="lv-icon">🌱</div>
+          <div class="lv-name">Principiante</div>
+          <div class="lv-desc">Conceptos básicos. Ideal para aprender desde cero.</div>
+        </div>
+        <div class="lv-card intermedio" onclick="selectLevel('intermedio',this)">
+          <div class="lv-icon">📊</div>
+          <div class="lv-name">Intermedio</div>
+          <div class="lv-desc">Portafolios, análisis y sectores de inversión.</div>
+        </div>
+        <div class="lv-card experto" onclick="selectLevel('experto',this)">
+          <div class="lv-icon">🧠</div>
+          <div class="lv-name">Experto</div>
+          <div class="lv-desc">Derivados, hedge funds y macroeconomía.</div>
+        </div>
+      </div>
+    </div>
+    <div class="sec" id="local-players-sec">
+      <div class="sec-title">Jugadores (2–4)</div>
+      <div class="players-grid" id="players-grid"></div>
+    </div>
+    <div class="sec" id="rounds-sec">
+      <div class="sec-title">Duración</div>
+      <div class="rounds-row">
+        <div class="rnd sel" onclick="selectRounds(10,this)">10<small>Rondas · Rápido</small></div>
+        <div class="rnd" onclick="selectRounds(20,this)">20<small>Rondas · Normal</small></div>
+        <div class="rnd" onclick="selectRounds(30,this)">30<small>Rondas · Completo</small></div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-g" onclick="showScreen('screen-intro')">← Volver</button>
+      <button class="btn btn-p" id="start-btn" onclick="startGame()" style="flex:1;">🚀 Iniciar Partida</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ GAME ════════════════════════════════════════════════ -->
+<div id="screen-game" class="screen">
+  <!-- TOPBAR -->
+  <div class="game-topbar">
+    <div class="topbar-logo">BusinessPlay</div>
+    <div class="topbar-mid">
+      <div class="round-pill" id="round-pill">Ronda 1/10</div>
+      <span class="lv-badge principiante" id="lv-badge">🌱 Principiante</span>
+      <span class="online-dot offline" id="online-indicator" title="Estado online" style="display:none;"></span>
+    </div>
+    <div class="topbar-right">
+      <button class="tb-btn inv" onclick="openInvest()">📈</button>
+      <button class="tb-btn" onclick="showScreen('screen-intro')">✕</button>
+    </div>
+  </div>
+
+  <!-- BODY -->
+  <div class="game-body">
+    <!-- BOARD -->
+    <div class="board-area">
+      <div id="board"></div>
+    </div>
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="s-tabs">
+        <div class="s-tab active" onclick="switchTab('players',this)">Jugadores</div>
+        <div class="s-tab" onclick="switchTab('market',this)">Mercado</div>
+        <div class="s-tab" onclick="switchTab('log',this)">Historial</div>
+      </div>
+      <div class="s-panel" id="tab-players"></div>
+      <div class="s-panel" id="tab-market" style="display:none"></div>
+      <div class="s-panel" id="tab-log" style="display:none"></div>
+
+      <!-- VOICE BAR -->
+      <div class="vc-bar">
+        <span style="font-size:13px;flex-shrink:0;">🎙</span>
+        <div class="vc-list" id="vc-list">
+          <span style="font-size:10px;color:var(--mu);font-family:var(--fm);">Voz desactivada</span>
+        </div>
+        <button class="vc-btn" id="vc-btn" onclick="vcClick()">
+          <span id="vc-icon">🎤</span><span id="vc-txt">Unirse</span>
+        </button>
+      </div>
+
+      <!-- ACTION ZONE -->
+      <div class="action-zone">
+        <div class="turn-banner" id="turn-banner">
+          <span class="tb-av" id="tb-av">🎲</span>
+          <div class="tb-info">
+            <div class="tb-lbl">Turno actual</div>
+            <div class="tb-nm" id="tb-nm" style="color:var(--ac)">—</div>
+          </div>
+          <span class="tb-cash" id="tb-cash">$0</span>
+        </div>
+        <div class="dice-row">
+          <div class="die" id="die1">🎲</div>
+          <div class="die" id="die2">🎲</div>
+          <div class="dice-total">
+            <div class="dice-total-l">Total</div>
+            <div class="dice-total-n" id="dice-total">—</div>
+          </div>
+        </div>
+        <div class="act-row">
+          <button class="act-btn act-btn-p" id="btn-roll" onclick="rollDice()">🎲 Lanzar dados</button>
+          <button class="act-btn act-btn-g" id="btn-end" onclick="endTurn()" style="display:none;">Fin turno →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ WINNER ═════════════════════════════════════════════ -->
+<div id="screen-winner" class="screen">
+  <div class="confetti-wrap" id="confetti"></div>
+  <div class="winner-wrap">
+    <div class="w-em" id="w-em">🏆</div>
+    <div class="w-title">¡GANADOR!</div>
+    <div class="w-name" id="w-name">—</div>
+    <div class="w-stats" id="w-stats"></div>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+      <button class="btn btn-g" onclick="showScreen('screen-intro')">🏠 Menú</button>
+      <button class="btn btn-p" onclick="rematch()">🔄 Revancha</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ MODALS ════════════════════════════════════════════ -->
+<div class="overlay" id="ov-property">
+  <div class="modal">
+    <div class="m-icon" id="prop-icon">🏢</div>
+    <div class="m-title" id="prop-name">—</div>
+    <div class="m-sub" id="prop-sub">—</div>
+    <div class="m-box" id="prop-details"></div>
+    <div class="m-acts" id="prop-acts"></div>
+  </div>
+</div>
+<div class="overlay" id="ov-question">
+  <div class="modal">
+    <div class="m-icon">🧠</div>
+    <div class="m-title">Pregunta de Conocimiento</div>
+    <div class="m-sub" id="q-text">—</div>
+    <div class="q-opts" id="q-opts"></div>
+    <div class="q-res" id="q-res"></div>
+    <button class="btn btn-p" id="q-cont" onclick="closeQuestion()" style="display:none;width:100%;">Continuar →</button>
+  </div>
+</div>
+<div class="overlay" id="ov-invest">
+  <div class="modal">
+    <div class="m-icon">📈</div>
+    <div class="m-title">Mercado de Inversiones</div>
+    <div class="m-sub">Selecciona un activo e invierte tu capital</div>
+    <div id="inv-tickers" style="margin-bottom:12px;"></div>
+    <div style="margin-bottom:14px;">
+      <div style="font-size:11px;color:var(--mu);margin-bottom:7px;">
+        Monto a invertir en <span id="inv-sel" style="color:var(--ac);">— selecciona —</span>
+      </div>
+      <input class="inv-input" id="inv-amount" type="number" placeholder="$0" min="1">
+      <div class="presets">
+        <div class="preset" onclick="setPreset(.25)">25%</div>
+        <div class="preset" onclick="setPreset(.5)">50%</div>
+        <div class="preset" onclick="setPreset(.75)">75%</div>
+        <div class="preset" onclick="setPreset(1)">Todo</div>
+      </div>
+    </div>
+    <div class="m-acts">
+      <button class="btn btn-g" onclick="closeOv('ov-invest')">Cancelar</button>
+      <button class="btn btn-p" onclick="doInvest()">Invertir →</button>
+    </div>
+  </div>
+</div>
+<div class="overlay" id="ov-event">
+  <div class="modal">
+    <div class="m-icon" id="ev-icon">⚡</div>
+    <div class="m-title" id="ev-title">Evento</div>
+    <div class="m-sub" id="ev-text">—</div>
+    <div class="m-box" id="ev-effect" style="margin-bottom:16px;"></div>
+    <button class="btn btn-p" style="width:100%;" onclick="closeOv('ov-event');resumeEvent()">Entendido →</button>
+  </div>
+</div>
+<div class="overlay" id="ov-voice">
+  <div class="modal">
+    <div class="m-icon">🎙️</div>
+    <div class="m-title">Chat de Voz</div>
+    <div class="m-sub">Selecciona tu jugador para activar el micrófono.</div>
+    <div class="vc-modal-grid" id="vc-modal-grid"></div>
+    <div class="m-acts">
+      <button class="btn btn-g" onclick="closeOv('ov-voice')">Cancelar</button>
+      <button class="btn btn-p" onclick="vcConfirm()">🎤 Activar</button>
+    </div>
+    <div class="verr" id="vc-err"></div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════
+// CONSTANTS & DATA
+// ═══════════════════════════════════════════════════════════════════
+const BOARD_SIZE=40, START_CASH=15000, SALARY=2000;
+const P_COLORS=['#F0C040','#4A90E2','#30C97A','#E05A30'];
+const AVATARS=['👨‍💼','👩‍💼','🧑‍💻','🕵️','🦸‍♀️','🧙‍♂️','🤴','👩‍🔬'];
+const COL_MAP={brown:'#8B4513',lightblue:'#5BBCDD',pink:'#FF69B4',
+  orange:'#FF8C00',red:'#DC143C',yellow:'#FFD700',green:'#228B22',navy:'#003580'};
+const DICE_F=['⚀','⚁','⚂','⚃','⚄','⚅'];
+
+const CELLS=[
+  {id:0, type:'corner', name:'SALIDA',   icon:'🏁', corner:true, tip:'Cobra $2,000 al pasar'},
+  {id:1, type:'property',name:'Acc. Tech',icon:'💻',color:'brown',price:600,rent:40,tip:'Tecnología emergente'},
+  {id:2, type:'event',  name:'Evento',   icon:'⚡', tip:'Evento sorpresa'},
+  {id:3, type:'property',name:'Fintech App',icon:'📱',color:'brown',price:600,rent:40,tip:'App de pagos digitales'},
+  {id:4, type:'tax',    name:'Impuesto', icon:'💸', amount:200,   tip:'Pagas $200 en impuestos'},
+  {id:5, type:'station',name:'Bróker A', icon:'🏦', price:2000,rent:250,tip:'Acceso a todos los mercados'},
+  {id:6, type:'property',name:'Fondo Mixto',icon:'📊',color:'lightblue',price:1000,rent:60,tip:'60% RV + 40% RF'},
+  {id:7, type:'question',name:'Pregunta',icon:'🧠', tip:'Responde y gana dinero'},
+  {id:8, type:'property',name:'ETF Global',icon:'🌍',color:'lightblue',price:1000,rent:60,tip:'7,000+ acciones mundiales'},
+  {id:9, type:'property',name:'S&P 500', icon:'📈', color:'lightblue',price:1200,rent:80,tip:'500 empresas top EE.UU.'},
+  {id:10,type:'corner', name:'VISITA',   icon:'👀', corner:true, tip:'Solo de visita'},
+  {id:11,type:'property',name:'Bonos Corp.',icon:'📜',color:'pink',price:1400,rent:100,tip:'Deuda corporativa con cupón'},
+  {id:12,type:'utility',name:'Forex',    icon:'💱', price:1500,rent:100,tip:'Mercado de divisas'},
+  {id:13,type:'property',name:'REIT Com.',icon:'🏬',color:'pink',price:1400,rent:100,tip:'Oficinas y centros comerciales'},
+  {id:14,type:'property',name:'REIT Res.',icon:'🏘️',color:'pink',price:1600,rent:120,tip:'Viviendas en renta'},
+  {id:15,type:'station',name:'Bróker B', icon:'🏦', price:2000,rent:250,tip:'Emergentes y Asia'},
+  {id:16,type:'property',name:'Commodities',icon:'🛢️',color:'orange',price:1800,rent:140,tip:'Petróleo y materias primas'},
+  {id:17,type:'event',  name:'Evento',   icon:'⚡', tip:'Evento sorpresa'},
+  {id:18,type:'property',name:'Oro Físico',icon:'🥇',color:'orange',price:1800,rent:140,tip:'Reserva de valor histórico'},
+  {id:19,type:'property',name:'Derivados',icon:'📉',color:'orange',price:2000,rent:160,tip:'Opciones y futuros'},
+  {id:20,type:'corner', name:'BONO',     icon:'🎉', corner:true, tip:'Recibes $500 de bono'},
+  {id:21,type:'property',name:'Hedge Fund',icon:'🦁',color:'red',price:2200,rent:180,tip:'Long/short sofisticado'},
+  {id:22,type:'question',name:'Pregunta',icon:'🧠', tip:'Responde y gana dinero'},
+  {id:23,type:'property',name:'Priv.Equity',icon:'💼',color:'red',price:2200,rent:180,tip:'Capital privado'},
+  {id:24,type:'property',name:'Venture Cap.',icon:'🚀',color:'red',price:2400,rent:200,tip:'Startups de alto riesgo'},
+  {id:25,type:'station',name:'Bróker C', icon:'🏦', price:2000,rent:250,tip:'Activos alternativos premium'},
+  {id:26,type:'property',name:'Crypto DeFi',icon:'₿',color:'yellow',price:2600,rent:220,tip:'Finanzas descentralizadas'},
+  {id:27,type:'event',  name:'Evento',   icon:'⚡', tip:'Evento sorpresa'},
+  {id:28,type:'property',name:'NFT Port.',icon:'🎨',color:'yellow',price:2600,rent:220,tip:'Activos digitales únicos'},
+  {id:29,type:'property',name:'Blockchain',icon:'⛓️',color:'yellow',price:2800,rent:240,tip:'Empresa Web3'},
+  {id:30,type:'corner', name:'CRISIS',   icon:'📉', corner:true, tip:'¡Crisis! Pierdes un turno'},
+  {id:31,type:'property',name:'Farmacéutica',icon:'💊',color:'green',price:3000,rent:260,tip:'Sector salud defensivo'},
+  {id:32,type:'utility',name:'E. Solar', icon:'☀️', price:1500,rent:100,tip:'Renovables de alta demanda'},
+  {id:33,type:'property',name:'AI Startup',icon:'🤖',color:'green',price:3000,rent:260,tip:'Inteligencia artificial'},
+  {id:34,type:'property',name:'EV Motors',icon:'🚗',color:'green',price:3200,rent:280,tip:'Vehículos eléctricos'},
+  {id:35,type:'station',name:'Bróker D', icon:'🏦', price:2000,rent:250,tip:'Mercados asiáticos'},
+  {id:36,type:'question',name:'Pregunta',icon:'🧠', tip:'Responde y gana dinero'},
+  {id:37,type:'property',name:'Luxury REIT',icon:'🏰',color:'navy',price:3500,rent:350,tip:'Hoteles de lujo y resorts'},
+  {id:38,type:'event',  name:'Evento',   icon:'⚡', tip:'Evento sorpresa'},
+  {id:39,type:'property',name:'MegaCorp', icon:'🏛️',color:'navy',price:4000,rent:450,tip:'La corporación más poderosa'},
+];
+
+// Cell position map
+const POS={};
+for(let i=0;i<=9;i++) POS[i]={col:11-i,row:11};
+POS[10]={col:1,row:11};
+for(let i=11;i<=19;i++) POS[i]={col:1,row:11-(i-10)};
+POS[20]={col:1,row:1};
+for(let i=21;i<=29;i++) POS[i]={col:i-20+1,row:1};
+POS[30]={col:11,row:1};
+for(let i=31;i<=39;i++) POS[i]={col:11,row:i-30+1};
+
+const MKTASSETS=[
+  {symbol:'TECH',name:'Tech Index',price:150},
+  {symbol:'GOLD',name:'Oro',price:200},
+  {symbol:'CRPT',name:'Crypto Mix',price:80},
+  {symbol:'REIT',name:'Real Estate',price:120},
+  {symbol:'BOND',name:'Bonos Gov.',price:100},
+  {symbol:'EMRG',name:'Emergentes',price:90},
+];
+
+const QS={
+  principiante:[
+    {q:'¿Qué es el interés compuesto?',o:['Interés solo sobre el capital','Interés sobre capital + intereses acumulados','Una comisión bancaria','El precio de un bono'],a:1,r:500,e:'El interés compuesto se calcula sobre el capital MÁS los intereses previamente acumulados.'},
+    {q:'¿Qué significa diversificar?',o:['Poner todo en una acción','Distribuir en diferentes activos','Guardar en efectivo','Invertir solo en tu país'],a:1,r:500,e:'Diversificar distribuye el riesgo en distintos activos para que una caída no arruine todo.'},
+    {q:'¿Qué es un ETF?',o:['Una criptomoneda','Un fondo que cotiza en bolsa como una acción','Una cuenta bancaria especial','Un contrato de seguro'],a:1,r:500,e:'Un ETF replica un índice y cotiza en bolsa. Permite diversificación con un solo activo.'},
+    {q:'¿Para qué sirve el fondo de emergencia?',o:['Invertir cuando hay crisis','Cubrir gastos imprevistos sin vender inversiones','Especular con divisas','Pagar menos impuestos'],a:1,r:500,e:'El fondo de emergencia protege tus inversiones de ser vendidas en el peor momento.'},
+    {q:'¿Qué es el DCA?',o:['Invertir todo de una vez','Invertir montos fijos periódicamente','Comprar solo en caídas','Diversificar por países'],a:1,r:500,e:'DCA consiste en invertir cantidades fijas periódicamente, promediando el precio de compra.'},
+    {q:'¿Qué es la Regla del 72?',o:['Ahorrar el 72% del salario','Años para duplicar dinero = 72 / tasa de retorno','Invertir desde los 72 años','El 72% en bonos'],a:1,r:500,e:'Divide 72 entre el rendimiento anual para obtener los años necesarios para duplicar tu capital.'},
+  ],
+  intermedio:[
+    {q:'¿Qué indica una curva de rendimientos invertida?',o:['Mercado alcista inminente','Posible recesión económica','Baja inflación','Alto crecimiento del PIB'],a:1,r:800,e:'Una curva invertida ha precedido históricamente a cada recesión en EE.UU.'},
+    {q:'¿Qué mide el Sharpe Ratio?',o:['Rentabilidad bruta anual','Rendimiento ajustado por unidad de riesgo','Volatilidad total','Correlación con el mercado'],a:1,r:800,e:'Sharpe = (Retorno - Tasa libre de riesgo) / Desviación estándar.'},
+    {q:'¿Qué es el "rebalanceo" de un portafolio?',o:['Vender todo y reinvertir','Restaurar los pesos originales cuando se desvían','Añadir más capital','Cambiar completamente la estrategia'],a:1,r:800,e:'Rebalancear devuelve el portafolio a la asignación objetivo cuando los activos se desvían.'},
+    {q:'¿Qué es el tax-loss harvesting?',o:['Aumentar el rendimiento bruto','Vender activos con pérdida para compensar ganancias fiscales','Evitar impuestos permanentemente','Mejorar la diversificación'],a:1,r:800,e:'Permite compensar ganancias de capital con pérdidas realizadas para reducir la factura fiscal.'},
+    {q:'¿Qué es la estrategia Core-Satellite?',o:['Invertir solo en ETFs','Núcleo indexado + posiciones activas específicas','Solo sectores','Solo emergentes'],a:1,r:800,e:'Core (70-80% indexado pasivo) + Satellite (20-30% posiciones activas o temáticas).'},
+    {q:'¿Cuándo la gestión activa tiene sentido?',o:['Siempre','En mercados menos eficientes como small caps','Nunca','Solo en EE.UU.'],a:1,r:800,e:'Los mercados menos eficientes (small caps, emergentes) ofrecen más oportunidades de alfa.'},
+  ],
+  experto:[
+    {q:'¿Qué es el VaR y su limitación principal?',o:['Retorno máximo; subestima ganancias','Pérdida máxima esperada; asume distribución normal','Volatilidad media; no incluye correlaciones','Drawdown máximo; solo datos históricos'],a:1,r:1200,e:'El VaR asume distribuciones normales pero los mercados tienen "fat tails" que lo superan.'},
+    {q:'¿Qué mide el Vega en opciones?',o:['Sensibilidad al precio del subyacente','Sensibilidad al cambio en volatilidad implícita','Pérdida de valor por tiempo','Aceleración del delta'],a:1,r:1200,e:'Vega mide cuánto cambia el precio de la opción ante un 1% de variación en la volatilidad implícita.'},
+    {q:'¿Qué es la Curva J en Private Equity?',o:['Retorno en bonos largos','Pérdidas contables iniciales antes de ganancias','Ciclo alcista prolongado','Impacto fiscal de inversiones'],a:1,r:1200,e:'Los fondos de PE muestran pérdidas contables en los primeros 2-3 años antes de las ganancias.'},
+    {q:'¿Qué es la Frontera Eficiente de Markowitz?',o:['Portafolio de mayor retorno','Portafolios que maximizan retorno por unidad de riesgo','Portafolio de menor volatilidad','Correlación óptima entre activos'],a:1,r:1200,e:'La Frontera Eficiente representa los portafolios con máximo retorno para cada nivel de riesgo.'},
+    {q:'¿Qué es el "Barbell Portfolio"?',o:['Igual ponderación en todos los activos','Activos ultra-seguros + activos convexos, sin el medio','Solo bonos y grandes caps','100 activos diversificados'],a:1,r:1200,e:'El Barbell concentra 80-90% en activos ultra-seguros y 10-20% en activos convexos de alto upside.'},
+    {q:'¿Qué es el DPI en Private Equity?',o:['Retorno total prometido','Capital realmente devuelto a inversores hasta hoy','Valor del portafolio no realizado','Tasa interna de retorno'],a:1,r:1200,e:'DPI es el único retorno materializado en efectivo real para los inversores.'},
+  ]
+};
+
+const EVENTS={
+  principiante:[
+    {icon:'📈',title:'¡Mercado Alcista!',text:'Las bolsas suben por buenas noticias.',eff:'all_pct',val:.10,pos:true},
+    {icon:'📉',title:'Corrección de Mercado',text:'Caída del 15%. Los activos pierden valor.',eff:'cur_pct',val:-.10,pos:false},
+    {icon:'💰',title:'Dividendos',text:'Cobras dividendos por tus propiedades.',eff:'dividend',val:500,pos:true},
+    {icon:'🏦',title:'Baja de Tasas',text:'El banco central baja tasas.',eff:'cur_flat',val:1000,pos:true},
+    {icon:'😰',title:'Impuesto Especial',text:'Impuesto extraordinario del gobierno.',eff:'cur_pct',val:-.10,pos:false},
+    {icon:'🎁',title:'Bono Corporativo',text:'Tu empresa otorga un bono de productividad.',eff:'cur_flat',val:800,pos:true},
+  ],
+  intermedio:[
+    {icon:'🏦',title:'Subida de Tasas 50pb',text:'El banco central sube tasas. Bonos caen.',eff:'cur_pct',val:-.15,pos:false},
+    {icon:'📊',title:'Inflación Sorpresa',text:'La inflación supera expectativas.',eff:'all_pct',val:.10,pos:true},
+    {icon:'🌍',title:'Crisis Geopolítica',text:'Tensión global afecta mercados emergentes.',eff:'cur_pct',val:-.20,pos:false},
+    {icon:'🚀',title:'IPO Exitosa',text:'Una tech hace IPO con éxito.',eff:'cur_flat',val:1500,pos:true},
+    {icon:'💱',title:'Depreciación de Divisa',text:'La moneda local cae.',eff:'all_pct',val:.08,pos:true},
+    {icon:'⚠️',title:'Regulación Cripto',text:'Nuevas regulaciones para criptomonedas.',eff:'cur_pct',val:-.25,pos:false},
+  ],
+  experto:[
+    {icon:'🏦',title:'Quantitative Tightening',text:'La Fed inicia QT agresivo.',eff:'all_pct',val:-.12,pos:false},
+    {icon:'🦢',title:'Cisne Negro',text:'Evento sistémico imprevisto.',eff:'cur_pct',val:-.20,pos:false},
+    {icon:'📉',title:'Curva Invertida',text:'Los bonos largos suben de precio.',eff:'cur_flat',val:1800,pos:true},
+    {icon:'💎',title:'Factor Momentum',text:'El mercado entra en tendencia alcista.',eff:'all_pct',val:.18,pos:true},
+    {icon:'🔥',title:'VIX Explota (>40)',text:'La volatilidad se dispara.',eff:'cur_pct',val:-.18,pos:false},
+    {icon:'🏛️',title:'Recesión Técnica',text:'PIB cae dos trimestres seguidos.',eff:'cur_flat',val:1200,pos:true},
+  ]
+};
+
+// ═══════════════════════════════════════════════════════════════════
+// GAME STATE
+// ═══════════════════════════════════════════════════════════════════
+let G={mode:'local',level:'principiante',players:[],currentPlayer:0,
+  round:1,maxRounds:10,props:{},mkt:{},log:[],rolled:false,
+  isHost:false,myPeerIdx:null,myPlayerIdx:0};
+let selLevel='principiante', selRounds=10;
+let pConfigs=[
+  {name:'Jugador 1',avatar:'👨‍💼',active:true},
+  {name:'Jugador 2',avatar:'👩‍💼',active:true},
+  {name:'Jugador 3',avatar:'🧑‍💻',active:false},
+  {name:'Jugador 4',avatar:'🕵️', active:false},
+];
+let invSelAsset=null, currentQ=null;
+
+// ═══════════════════════════════════════════════════════════════════
+// SCREENS & SETUP
+// ═══════════════════════════════════════════════════════════════════
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if(id==='screen-game') initBoardResizeObserver();
+  else if(id!=='screen-game') vcLeave();
+}
+
+function showSetup(mode){
+  G.mode=mode;
+  document.getElementById('setup-title').textContent=
+    mode==='online'?'Partida Online':'Configurar Partida Local';
+  document.getElementById('setup-sub').textContent=
+    mode==='online'?'Crea una sala o únete con un código de amigos.':'Elige el nivel, los jugadores y la duración.';
+  document.getElementById('online-lobby').style.display=mode==='online'?'block':'none';
+  document.getElementById('local-players-sec').style.display=mode==='online'?'none':'block';
+  document.getElementById('start-btn').textContent=mode==='online'?'🌐 Iniciar como Host':'🚀 Iniciar Partida';
+  if(mode==='online') initOnlineHost();
+  buildPGrid();
+  showScreen('screen-setup');
+}
+
+function buildPGrid(){
+  document.getElementById('players-grid').innerHTML=pConfigs.map((p,i)=>`
+    <div class="p-setup" id="ps-${i}" style="${p.active?'':'opacity:.45'}">
+      <div style="font-size:9px;font-family:var(--fm);color:${P_COLORS[i]};margin-bottom:5px;text-transform:uppercase;letter-spacing:1px;">Jugador ${i+1}</div>
+      <div class="p-av" id="pav-${i}">${p.avatar}</div>
+      <div class="av-sel">${AVATARS.map(a=>`<span class="av-opt ${p.avatar===a?'sel':''}" onclick="pickAv(${i},'${a}',this)">${a}</span>`).join('')}</div>
+      <input class="p-input" value="${p.name}" oninput="pConfigs[${i}].name=this.value">
+      ${i>=2?`<div class="p-tog ${p.active?'on':''}" id="ptog-${i}" onclick="togP(${i})"></div>`:''}
+    </div>`).join('');
+}
+function pickAv(i,av,el){
+  pConfigs[i].avatar=av;
+  document.getElementById(`ps-${i}`).querySelectorAll('.av-opt').forEach(a=>a.classList.remove('sel'));
+  el.classList.add('sel');
+  document.getElementById(`pav-${i}`).textContent=av;
+}
+function togP(i){
+  pConfigs[i].active=!pConfigs[i].active;
+  document.getElementById(`ptog-${i}`).classList.toggle('on',pConfigs[i].active);
+  document.getElementById(`ps-${i}`).style.opacity=pConfigs[i].active?'1':'0.45';
+  document.querySelector(`#ps-${i} input`).disabled=!pConfigs[i].active;
+}
+function selectLevel(lv,el){
+  document.querySelectorAll('.lv-card').forEach(c=>c.classList.remove('sel'));
+  el.classList.add('sel'); selLevel=lv;
+}
+function selectRounds(n,el){
+  document.querySelectorAll('.rnd').forEach(r=>r.classList.remove('sel'));
+  el.classList.add('sel'); selRounds=n;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// ONLINE — PeerJS
+// ═══════════════════════════════════════════════════════════════════
+let peer=null, hostConn=null, guestConns={}, roomId=null, onlinePlayers={};
+let _MY_PLAYER_IDX=0;
+Object.defineProperty(window,'MY_PLAYER_IDX',{
+  get(){ return _MY_PLAYER_IDX; },
+  set(v){
+    console.trace('[MY_PLAYER_IDX changed]',_MY_PLAYER_IDX,'→',v,'isHost=',G?G.isHost:'?');
+    _MY_PLAYER_IDX=v;
+  }
+});
+
+function genRoomCode(){
+  // Purely alphanumeric — the PeerJS broker can reject IDs that contain dashes
+  const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  return 'BP'+Array.from({length:6},()=>chars[Math.floor(Math.random()*chars.length)]).join('');
+}
+
+function initOnlineHost(){
+  if(peer) peer.destroy();
+  const dot=document.getElementById('dot-host');
+  const stat=document.getElementById('status-host');
+  document.getElementById('room-code-display').textContent='——';
+  dot.className='online-dot connecting';
+  stat.textContent='Generando sala…';
+
+  // Use a custom short ID so guests can type it directly
+  const customId = genRoomCode();
+
+  // ICE: multiple STUN + free TURN relays for NAT traversal (PC<->mobile)
+  const ICE_CFG={iceServers:[
+    {urls:'stun:stun.l.google.com:19302'},
+    {urls:'stun:stun1.l.google.com:19302'},
+    {urls:'stun:stun2.l.google.com:19302'},
+    {urls:'stun:stun3.l.google.com:19302'},
+    {urls:'stun:stun4.l.google.com:19302'},
+    {urls:'stun:stun.cloudflare.com:3478'},
+    {urls:'turn:openrelayproject.org',username:'openrelayproject',credential:'openrelayproject'},
+    {urls:'turns:openrelayproject.org:443',username:'openrelayproject',credential:'openrelayproject'},
+  ]};
+  peer=new Peer(customId, {config: ICE_CFG, debug: 1});
+
+  peer.on('open',id=>{
+    roomId=id;
+    G.isHost=true;
+    document.getElementById('room-code-display').textContent=id;
+    dot.className='online-dot connected';
+    stat.textContent='✅ Sala activa — comparte el código con tus amigos';
+    // Host name: always read from the input at the moment the peer opens
+    const hostNameEl=document.getElementById('host-name');
+    const hostName=(hostNameEl&&hostNameEl.value.trim())||pConfigs[0].name||'Jugador 1';
+    pConfigs[0].name=hostName;
+    if(hostNameEl) hostNameEl.value=hostName;
+    MY_NAME=hostName;
+    MY_PLAYER_IDX=0; // host always creates the room = always player 0
+    onlinePlayers[id]={name:hostName,avatar:pConfigs[0].avatar,idx:0};
+    renderLobbyPlayers();
+    // Host listens for voice calls from the start
+    vcListenForCalls();
+  });
+
+  peer.on('connection',conn=>{
+    conn.on('open',()=>{
+      guestConns[conn.peer]=conn;
+      conn.send({type:'WELCOME',roomId,level:selLevel,rounds:selRounds,
+        players:Object.values(onlinePlayers)});
+      conn.on('data',d=>handleOnlineData(d,conn));
+      // If voice is already active when a new guest joins, call them
+      if(VC.active&&VC.stream) setTimeout(()=>vcCallPeer(conn.peer),600);
+      conn.on('close',()=>{
+        delete guestConns[conn.peer];
+        delete onlinePlayers[conn.peer];
+        if(VC.activePeers) delete VC.activePeers[conn.peer];
+        renderLobbyPlayers();
+        broadcastAll({type:'LOBBY_UPDATE',players:Object.values(onlinePlayers)});
+        flash('⚠️','Un jugador se desconectó',false);
+      });
+    });
+    // Handle connection errors gracefully
+    conn.on('error',e=>console.warn('conn error',e));
+  });
+
+  peer.on('error',e=>{
+    dot.className='online-dot offline';
+    if(e.type==='unavailable-id'){
+      // ID already taken, regenerate
+      stat.textContent='Código ocupado, generando otro…';
+      setTimeout(initOnlineHost,500);
+    } else {
+      stat.textContent='Error: '+e.type+'. Reintentando…';
+      setTimeout(initOnlineHost,3000);
+    }
+  });
+
+  peer.on('disconnected',()=>{
+    dot.className='online-dot connecting';
+    stat.textContent='Reconectando…';
+    peer.reconnect();
+  });
+}
+
+function lobbyTab(t){
+  document.querySelectorAll('.ltab').forEach(l=>l.classList.remove('active'));
+  document.querySelectorAll('.lobby-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('ltab-'+t).classList.add('active');
+  document.getElementById('lpanel-'+t).classList.add('active');
+}
+
+let MY_NAME=''; // set at join time, used to self-identify in G.players
+
+function joinRoom(){
+  const rawCode=document.getElementById('join-code').value.trim().toUpperCase();
+  const name=document.getElementById('join-name').value.trim()||'Invitado';
+  MY_NAME=name; // remember who I am
+  if(!rawCode){flash('⚠️','Escribe el código de sala',false);return;}
+
+  const panel=document.getElementById('join-status-panel');
+  const dot=document.getElementById('dot-join');
+  const stat=document.getElementById('status-join');
+  panel.style.display='block';
+  dot.className='online-dot connecting';
+  stat.textContent='Conectando…';
+
+  if(peer) peer.destroy();
+  // Guest gets a random peer ID, connects to hostId = rawCode
+  const ICE_CFG2={iceServers:[
+    {urls:'stun:stun.l.google.com:19302'},
+    {urls:'stun:stun1.l.google.com:19302'},
+    {urls:'stun:stun2.l.google.com:19302'},
+    {urls:'stun:stun3.l.google.com:19302'},
+    {urls:'stun:stun4.l.google.com:19302'},
+    {urls:'stun:stun.cloudflare.com:3478'},
+    {urls:'turn:openrelayproject.org',username:'openrelayproject',credential:'openrelayproject'},
+    {urls:'turns:openrelayproject.org:443',username:'openrelayproject',credential:'openrelayproject'},
+  ]};
+  peer=new Peer({config: ICE_CFG2, debug: 1});
+
+  peer.on('open',myId=>{
+    stat.textContent='Buscando sala '+rawCode+'…';
+    // Connect directly using the room code as the host peer ID
+    hostConn=peer.connect(rawCode, {reliable:true});
+
+    // Timeout if no connection after 15 seconds
+    const timeout=setTimeout(()=>{
+      if(hostConn&&hostConn.open!==true){
+        dot.className='online-dot offline';
+        stat.innerHTML='⚠️ No se pudo conectar a la sala.<br><small>Verifica el código. Si el código es correcto, el host puede reiniciar la sala y compartir el nuevo código.</small>';
+      }
+    },15000);
+
+    hostConn.on('open',()=>{
+      clearTimeout(timeout);
+      dot.className='online-dot connected';
+      stat.textContent='✅ Conectado. Esperando que el host inicie la partida…';
+      hostConn.send({type:'JOIN',name,avatar:pConfigs[0].avatar,myId});
+      hostConn.on('data',d=>handleOnlineData(d,hostConn));
+      flash('✅','Conectado a la sala de '+rawCode,true);
+      // Start listening for voice calls from host
+      vcListenForCalls();
+    });
+
+    hostConn.on('error',e=>{
+      clearTimeout(timeout);
+      dot.className='online-dot offline';
+      if(e.type==='peer-unavailable'){
+        stat.textContent='⚠️ Sala no encontrada. Verifica que el host ya creó la sala.';
+      } else {
+        stat.textContent='⚠️ Error: '+e.type;
+      }
+    });
+
+    hostConn.on('close',()=>{
+      dot.className='online-dot offline';
+      stat.textContent='Desconectado de la sala.';
+      flash('⚠️','Se perdió la conexión con el host',false);
+    });
+  });
+
+  peer.on('error',e=>{
+    dot.className='online-dot offline';
+    if(e.type==='peer-unavailable'){
+      stat.textContent='⚠️ Sala "'+rawCode+'" no encontrada. Verifica el código.';
+    } else {
+      stat.textContent='⚠️ Error de red: '+e.type;
+    }
+  });
+}
+
+function handleOnlineData(data,conn){
+  switch(data.type){
+    case 'JOIN':
+      const idx=Object.keys(onlinePlayers).length;
+      onlinePlayers[conn.peer]={name:data.name,avatar:data.avatar,idx,peerId:conn.peer};
+      renderLobbyPlayers();
+      // Tell the joining guest their exact player index (bulletproof assignment)
+      conn.send({type:'JOIN_ACK',yourIdx:idx});
+      const lobbyData={type:'LOBBY_UPDATE',players:Object.values(onlinePlayers),
+        count:Object.keys(onlinePlayers).length};
+      broadcastAll(lobbyData);
+      conn.send(lobbyData);
+      flash('🌐',data.name+' se unió a la sala',true);
+      addLog('🌐',data.name,'se unió a la sala online');
+      break;
+    case 'WELCOME':
+      G.myPeerIdx=Object.keys(onlinePlayers).length;
+      flash('✅','Conectado a sala de '+data.players.length+' jugador(es)',true);
+      break;
+    case 'JOIN_ACK':
+      MY_PLAYER_IDX=data.yourIdx;
+      console.log('[JOIN_ACK] MY_PLAYER_IDX=',MY_PLAYER_IDX,'yourIdx=',data.yourIdx);
+      break;
+    case 'LOBBY_UPDATE':
+      renderLobbyPlayers(data.players);
+      // Update guest join status with player count
+      const joinStat=document.getElementById('status-join');
+      if(joinStat&&data.count){
+        joinStat.textContent='✅ Conectado — '+data.count+' jugador(es) en sala. Esperando al host…';
+      }
+      break;
+    case 'START_GAME':
+      G=Object.assign(G,data.gameState);
+      // Re-read guest name from input in case MY_NAME wasn't set yet
+      const joinEl=document.getElementById('join-name');
+      if(joinEl&&joinEl.value.trim()) MY_NAME=joinEl.value.trim();
+      console.log('[GUEST startGame] MY_NAME=',MY_NAME,'players=',data.gameState?data.gameState.players.map(p=>p.name):[]);
+      buildBoard(); initBoardResizeObserver();
+      renderPlayers(); renderMarket();
+      updateTurnUI(); updateLvBadge();
+      G.players.forEach((_,i)=>placeToken(i,0,true));
+      vcRenderBar();
+      showScreen('screen-game');
+      document.getElementById('online-indicator').style.display='inline-block';
+      document.getElementById('online-indicator').className='online-dot connected';
+      break;
+    case 'GAME_STATE':
+      // If host receives this from a guest, relay (with personalized idx) to all others
+      if(G.isHost){
+        Object.entries(guestConns).forEach(([gPeerId,conn])=>{
+          const idx = onlinePlayers[gPeerId]?onlinePlayers[gPeerId].idx:null;
+          try{ conn.send(Object.assign({},data,{type:'GAME_STATE',yourPlayerIdx:idx})); }catch(e){}
+        });
+      } else {
+        // Guest: keep MY_PLAYER_IDX from JOIN_ACK; also accept override from state
+        if(data.yourPlayerIdx!==undefined&&data.yourPlayerIdx!==null){
+          MY_PLAYER_IDX=data.yourPlayerIdx;
+        }
+      }
+      G.players=data.players; G.props=data.props; G.mkt=data.mkt;
+      G.currentPlayer=data.currentPlayer; G.round=data.round;
+      G.rolled=false;
+      console.log('[GAME_STATE received] currentPlayer=',G.currentPlayer,'MY_PLAYER_IDX=',MY_PLAYER_IDX,'yourPlayerIdx=',data.yourPlayerIdx);
+      renderPlayers(); renderMarket(); updateTurnUI(); updateBoardOwnership();
+      // Small delay ensures board DOM is ready before repositioning tokens
+      setTimeout(()=>G.players.forEach((_,i)=>placeToken(i,G.players[i].pos,true)),80);
+      document.getElementById('round-pill').textContent='Ronda '+G.round+'/'+G.maxRounds;
+      document.getElementById('die1').textContent='🎲';
+      document.getElementById('die2').textContent='🎲';
+      document.getElementById('dice-total').textContent='—';
+      document.getElementById('btn-end').style.display='none';
+      break;
+    case 'LOG':
+      addLog(data.icon,data.actor,data.text);
+      break;
+
+    // ── Voice mesh signaling ───────────────────────────────────────
+    case 'VC_ANNOUNCE':
+      // A peer just activated voice. Relay if host, then make a FRESH call so
+      // both sides now have real mic streams (drops any prior empty-stream call).
+      if(G.isHost){
+        if(!VC.activePeers) VC.activePeers={};
+        VC.activePeers[data.peerId]=true;
+        // Send the announcing peer a list of all other voice-active peers
+        const otherVoice=Object.keys(VC.activePeers).filter(id=>id!==data.peerId);
+        if(guestConns[data.peerId])
+          try{guestConns[data.peerId].send({type:'VC_PEERS_LIST',peers:otherVoice});}catch(e){}
+        // Relay to all other guests so they can call back directly
+        Object.entries(guestConns).forEach(([id,c])=>{
+          if(id!==data.peerId) try{c.send({type:'VC_PEER_JOIN',peerId:data.peerId});}catch(e){}
+        });
+        // Host calls the new voice peer — drop any stale empty-stream call first
+        if(VC.active&&VC.stream){
+          vcDropCall(data.peerId);
+          vcCallPeer(data.peerId);
+        }
+      } else {
+        // Guest received a relay from host — drop stale call, call peer fresh
+        if(VC.active&&VC.stream){
+          vcDropCall(data.peerId);
+          vcCallPeer(data.peerId);
+        }
+      }
+      break;
+
+    case 'VC_PEERS_LIST':
+      // I just activated voice; host sent me all currently voice-active peer IDs
+      (data.peers||[]).forEach(id=>{
+        if(id&&id!==peer.id){
+          vcDropCall(id);
+          vcCallPeer(id);
+        }
+      });
+      break;
+
+    case 'VC_PEER_JOIN':
+      // A new peer activated voice; call them if I'm voice active
+      if(VC.active&&VC.stream&&data.peerId&&data.peerId!==peer.id){
+        vcDropCall(data.peerId);
+        vcCallPeer(data.peerId);
+      }
+      break;
+  }
+}
+
+function broadcastAll(data){
+  Object.values(guestConns).forEach(c=>{ try{c.send(data);}catch(e){} });
+}
+
+function broadcastState(){
+  const base={type:'GAME_STATE',
+    players:G.players,props:G.props,mkt:G.mkt,
+    currentPlayer:G.currentPlayer,round:G.round,rolled:false};
+  if(G.isHost){
+    // Send each guest a personalized copy that tells them exactly which player they are
+    Object.entries(guestConns).forEach(([gPeerId,conn])=>{
+      const idx = onlinePlayers[gPeerId]?onlinePlayers[gPeerId].idx:null;
+      try{ conn.send(Object.assign({},base,{yourPlayerIdx:idx})); }catch(e){}
+    });
+  } else if(hostConn&&hostConn.open){
+    hostConn.send(base);
+  }
+}
+
+function renderLobbyPlayers(players){
+  const list=document.getElementById('lobby-players-list');
+  const pl=players||Object.values(onlinePlayers);
+  if(!pl.length){
+    list.innerHTML='<span style="font-size:11px;color:var(--mu);font-family:var(--fm);">Esperando jugadores…</span>';
+    return;
+  }
+  list.innerHTML=pl.map((p,i)=>`
+    <div class="lobby-player-chip ${i===0?'me':''}" style="
+      display:flex;align-items:center;gap:8px;
+      background:var(--s1);border:1px solid ${i===0?'var(--ac)':'var(--bd)'};
+      border-radius:10px;padding:8px 12px;width:100%;box-sizing:border-box;">
+      <span style="font-size:20px;">${p.avatar||'👤'}</span>
+      <div style="flex:1;">
+        <div style="font-family:var(--fh);font-size:13px;font-weight:700;color:${i===0?'var(--ac)':'var(--tx)'}">
+          ${p.name}
+        </div>
+        <div style="font-size:9px;color:var(--mu);font-family:var(--fm);margin-top:1px;">
+          ${i===0?'🟡 HOST · Creador de la sala':'🟢 Conectado'}
+        </div>
+      </div>
+      <span style="font-size:9px;font-family:var(--fm);color:var(--mu);">Jugador ${i+1}</span>
+    </div>`).join('');
+
+  // Also update the player count indicator
+  const stat=document.getElementById('status-host');
+  if(stat&&G.isHost){
+    stat.textContent='✅ Sala activa — '+pl.length+' jugador(es) conectado(s)';
+  }
+  const badge=document.getElementById('lobby-count-badge');
+  if(badge) badge.textContent=pl.length;
+}
+
+function copyCode(){
+  const code=document.getElementById('room-code-display').textContent.trim();
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(code).then(()=>flash('📋','Código copiado: '+code,true));
+  } else {
+    // Fallback for non-HTTPS
+    const ta=document.createElement('textarea');
+    ta.value=code; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+    flash('📋','Código copiado: '+code,true);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// START GAME
+// ═══════════════════════════════════════════════════════════════════
+function startGame(){
+  if(G.mode==='online' && !G.isHost){flash('⚠️','Solo el host puede iniciar',false);return;}
+  const active=pConfigs.filter(p=>p.active);
+  if(active.length<2){alert('Necesitas al menos 2 jugadores.');return;}
+
+  G.level=selLevel; G.maxRounds=selRounds;
+  G.round=1; G.currentPlayer=0; G.props={}; G.log=[]; G.rolled=false;
+  if(G.mode!=='online') MY_PLAYER_IDX=0;
+  G.mkt={};
+  MKTASSETS.forEach(a=>{G.mkt[a.symbol]={...a,history:[a.price],holdings:{}};});
+  G.players=active.map((p,i)=>({
+    name:p.name,avatar:p.avatar,color:P_COLORS[i],
+    cash:START_CASH,pos:0,props:[],inJail:false,jailTurns:0
+  }));
+
+  if(G.mode==='online'){
+    // Build players from lobby (real names/avatars from onlinePlayers, ordered by idx)
+    const ordered=Object.values(onlinePlayers).sort((a,b)=>a.idx-b.idx);
+    G.players=ordered.map((op,i)=>({
+      name:op.name,avatar:op.avatar,color:P_COLORS[i],
+      cash:START_CASH,pos:0,props:[],inJail:false,jailTurns:0
+    }));
+    // Re-read MY_NAME from input right now — most reliable moment
+    const hostNameEl2=document.getElementById('host-name');
+    if(hostNameEl2&&hostNameEl2.value.trim()) MY_NAME=hostNameEl2.value.trim();
+    else MY_NAME=onlinePlayers[peer.id]?onlinePlayers[peer.id].name:MY_NAME;
+    console.log('[HOST startGame] MY_NAME=',MY_NAME,'players=',G.players.map(p=>p.name));
+    const gameState={level:G.level,maxRounds:G.maxRounds,players:G.players,mkt:G.mkt};
+    // Send each guest their index EXPLICITLY — avoids peer.id mismatch bugs
+    Object.entries(guestConns).forEach(([gPeerId,conn])=>{
+      try{ conn.send({type:'START_GAME',gameState,yourPlayerIdx:peerToIdx[gPeerId]??1}); }catch(e){}
+    });
+    document.getElementById('online-indicator').style.display='inline-block';
+    document.getElementById('online-indicator').className='online-dot connected';
+  }
+
+  buildBoard(); initBoardResizeObserver();
+  renderPlayers(); renderMarket();
+  updateTurnUI(); updateLvBadge();
+  G.players.forEach((_,i)=>placeToken(i,0,true));
+  addLog('🚀','Partida','Nivel: <strong>'+G.level+'</strong> · '+G.players.length+' jugadores');
+  vcRenderBar();
+  showScreen('screen-game');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// BOARD
+// ═══════════════════════════════════════════════════════════════════
+function buildBoard(){
+  const board=document.getElementById('board');
+  board.innerHTML='';
+  CELLS.forEach(cell=>{
+    const pos=POS[cell.id];
+    const d=document.createElement('div');
+    // Add position classes for styling
+    let cellClass='cell';
+    if(cell.corner) cellClass+=' corner';
+    if(pos.col===1 && !cell.corner) cellClass+=' col-left';
+    if(pos.col===11 && !cell.corner) cellClass+=' col-right';
+    d.className=cellClass;
+    d.id='c'+cell.id; d.style.gridColumn=pos.col; d.style.gridRow=pos.row;
+    d.title=cell.tip||cell.name; d.onclick=()=>cellClick(cell.id);
+    if(cell.color){
+      const b=document.createElement('div');
+      b.className='cell-bar'; b.style.background=COL_MAP[cell.color];
+      d.appendChild(b);
+    }
+    const ic=document.createElement('div'); ic.className='cell-icon'; ic.textContent=cell.icon;
+    d.appendChild(ic);
+    if(cell.corner){
+      const lb=document.createElement('div'); lb.className='corner-lbl'; lb.textContent=cell.name;
+      d.appendChild(lb);
+    } else {
+      const nm=document.createElement('div'); nm.className='cell-name'; nm.textContent=cell.name;
+      d.appendChild(nm);
+      if(cell.price){const pr=document.createElement('div');pr.className='cell-price';pr.textContent='$'+cell.price.toLocaleString();d.appendChild(pr);}
+    }
+    const ob=document.createElement('div'); ob.className='cell-own'; ob.id='ob'+cell.id;
+    d.appendChild(ob);
+    board.appendChild(d);
+  });
+  // Center
+  const ctr=document.createElement('div'); ctr.className='board-center';
+  ctr.style.cssText='grid-column:2/11;grid-row:2/11;';
+  ctr.innerHTML=`<div class="bc-logo">BusinessPlay</div>
+    <div class="bc-sub">El Juego de la Riqueza Real</div>
+    <div class="bc-players" id="bcp"></div>
+    <div class="bc-stats" id="bcs"></div>`;
+  board.appendChild(ctr);
+  updateCenterInfo(); updateBoardOwnership();
+}
+
+function updateBoardOwnership(){
+  CELLS.forEach(cell=>{
+    const ob=document.getElementById('ob'+cell.id);
+    const cd=document.getElementById('c'+cell.id);
+    if(!ob||!cd) return;
+    const owner=G.props[cell.id];
+    if(owner!==undefined){
+      ob.style.background=G.players[owner].color;
+      cd.style.boxShadow='inset 0 0 0 2px '+G.players[owner].color+'55';
+    } else { ob.style.background='transparent'; cd.style.boxShadow=''; }
+  });
+}
+
+function updateCenterInfo(){
+  const bp=document.getElementById('bcp'), bs=document.getElementById('bcs');
+  if(!bp||!G.players.length) return;
+  const cur=G.players[G.currentPlayer]||{};
+  bp.innerHTML=G.players.map((p,i)=>
+    `<span style="font-size:${i===G.currentPlayer?'22px':'17px'};opacity:${i===G.currentPlayer?1:.6};
+      filter:drop-shadow(0 2px 5px ${p.color}88);transition:all .3s;">${p.avatar}</span>`
+  ).join('');
+  bs.innerHTML=`
+    <div class="bc-stat"><div class="bc-sv" style="color:${cur.color||'var(--ac)'}">${cur.avatar||'🎲'}</div><div class="bc-sl">Turno</div></div>
+    <div class="bc-stat"><div class="bc-sv">R${G.round}</div><div class="bc-sl">de ${G.maxRounds}</div></div>
+    <div class="bc-stat"><div class="bc-sv">$${(cur.cash||0).toLocaleString()}</div><div class="bc-sl">Efectivo</div></div>
+    <div class="bc-stat"><div class="bc-sv">${(cur.props||[]).length}</div><div class="bc-sl">Propied.</div></div>`;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// BOARD RESIZE — fills all available space, rectangular
+// ═══════════════════════════════════════════════════════════════════
+function resizeBoard(){
+  const board = document.getElementById('board');
+  if(!board) return;
+
+  // Board already fills its container via CSS width:100%; height:100%
+  // Read actual rendered size directly from the board element
+  const W = board.clientWidth;
+  const H = board.clientHeight;
+  if(!W || !H) return;
+
+  // Corner proportional to the shorter side
+  const corner = Math.max(52, Math.round(Math.min(W, H) * 0.082));
+
+  // Inner cells fill remaining space in each axis independently
+  const iW = Math.floor((W - corner * 2) / 9);
+  const iH = Math.floor((H - corner * 2) / 9);
+
+  const cols = corner + 'px ' + Array(9).fill(iW+'px').join(' ') + ' ' + corner + 'px';
+  const rows = corner + 'px ' + Array(9).fill(iH+'px').join(' ') + ' ' + corner + 'px';
+  board.style.gridTemplateColumns = cols;
+  board.style.gridTemplateRows    = rows;
+
+  // Scale content using the smaller inner dimension so text never overflows
+  const cm = Math.min(iW, iH);
+  board.style.setProperty('--ci', Math.max(11, Math.round(cm * 0.44)) + 'px');
+  board.style.setProperty('--cn', Math.max(6,  Math.round(cm * 0.16)) + 'px');
+  board.style.setProperty('--cp', Math.max(5,  Math.round(cm * 0.13)) + 'px');
+  board.style.setProperty('--cc', Math.max(20, Math.round(corner * 0.40)) + 'px');
+  board.style.setProperty('--cf', Math.max(7,  Math.round(corner * 0.11)) + 'px');
+
+  if(G.players && G.players.length){
+    G.players.forEach((_,i)=>placeToken(i,G.players[i].pos,true));
+  }
+}
+
+// ResizeObserver fires AFTER layout is painted — no timing guesses needed
+let _rbo = null;
+function initBoardResizeObserver(){
+  if(_rbo) _rbo.disconnect();
+  const board = document.getElementById('board');
+  if(!board) return;
+  _rbo = new ResizeObserver(()=>resizeBoard());
+  _rbo.observe(board);
+}
+// ResizeObserver on the board element already handles all size changes automatically
+
+// ═══════════════════════════════════════════════════════════════════
+// TOKENS
+// ═══════════════════════════════════════════════════════════════════
+function placeToken(pi,pos,instant=false){
+  let tk=document.getElementById('tok'+pi);
+  if(!tk){
+    tk=document.createElement('div'); tk.className='token'; tk.id='tok'+pi;
+    tk.textContent=G.players[pi].avatar;
+    tk.style.backgroundColor=G.players[pi].color+'22';
+    tk.style.border='2px solid '+G.players[pi].color;
+    document.getElementById('board').appendChild(tk);
+  }
+  const cell=document.getElementById('c'+pos);
+  const board=document.getElementById('board');
+  if(!cell||!board) return;
+  const br=board.getBoundingClientRect(), cr=cell.getBoundingClientRect();
+  const cx=cr.left-br.left+cr.width/2, cy=cr.top-br.top+cr.height/2;
+  const offs=[{x:-9,y:-9},{x:9,y:-9},{x:-9,y:9},{x:9,y:9}];
+  const o=offs[pi]||{x:0,y:0};
+  if(instant){
+    tk.style.transition='none';
+    tk.style.left=(cx-11+o.x)+'px'; tk.style.top=(cy-11+o.y)+'px';
+    requestAnimationFrame(()=>{tk.style.transition='';});
+  } else {
+    tk.style.left=(cx-11+o.x)+'px'; tk.style.top=(cy-11+o.y)+'px';
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// DICE SOUND
+// ═══════════════════════════════════════════════════════════════════
+function playDiceSound(){
+  try{
+    const ac=new (window.AudioContext||window.webkitAudioContext)();
+    // Generate 3 quick rattle clicks
+    [0, 0.08, 0.18].forEach(offset=>{
+      const buf=ac.createBuffer(1,ac.sampleRate*0.06,ac.sampleRate);
+      const data=buf.getChannelData(0);
+      for(let i=0;i<data.length;i++){
+        // Sharp white noise burst decaying fast = rattle/click sound
+        data[i]=(Math.random()*2-1)*Math.pow(1-(i/data.length),3)*0.9;
+      }
+      const src=ac.createBufferSource();
+      const gain=ac.createGain();
+      gain.gain.value=0.5;
+      src.buffer=buf;
+      src.connect(gain); gain.connect(ac.destination);
+      src.start(ac.currentTime+offset);
+    });
+    // Final soft thud
+    const thud=ac.createBuffer(1,ac.sampleRate*0.12,ac.sampleRate);
+    const td=thud.getChannelData(0);
+    for(let i=0;i<td.length;i++){
+      td[i]=(Math.random()*2-1)*Math.pow(1-(i/td.length),6)*0.6;
+    }
+    const ts=ac.createBufferSource();
+    const tg=ac.createGain(); tg.gain.value=0.7;
+    ts.buffer=thud; ts.connect(tg); tg.connect(ac.destination);
+    ts.start(ac.currentTime+0.30);
+  }catch(e){}
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// DICE
+// ═══════════════════════════════════════════════════════════════════
+function rollDice(){
+  if(G.rolled) return;
+  if(G.mode==='online' && MY_PLAYER_IDX!==G.currentPlayer){
+    flash('⛔',`No es tu turno (yo=${MY_PLAYER_IDX} actual=${G.currentPlayer})`,false); return;
+  }
+  G.rolled=true;
+  playDiceSound();
+  const d1=document.getElementById('die1'), d2=document.getElementById('die2');
+  const tot=document.getElementById('dice-total');
+  document.getElementById('btn-roll').disabled=true;
+  d1.classList.add('rolling'); d2.classList.add('rolling');
+  tot.textContent='…';
+  let f=0;
+  const sh=setInterval(()=>{
+    d1.textContent=DICE_F[Math.floor(Math.random()*6)];
+    d2.textContent=DICE_F[Math.floor(Math.random()*6)];
+    if(++f>14) clearInterval(sh);
+  },55);
+  setTimeout(()=>{
+    d1.classList.remove('rolling'); d2.classList.remove('rolling');
+    const v1=Math.ceil(Math.random()*6), v2=Math.ceil(Math.random()*6), total=v1+v2;
+    d1.textContent=DICE_F[v1-1]; d2.textContent=DICE_F[v2-1];
+    tot.textContent=total;
+    document.getElementById('btn-roll').disabled=false;
+    movePlayer(G.currentPlayer,total);
+  },900);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// MOVEMENT
+// ═══════════════════════════════════════════════════════════════════
+function movePlayer(pi,steps){
+  const p=G.players[pi];
+  let step=0, pos=p.pos;
+  function next(){
+    if(step>=steps){ p.pos=pos; updateCenterInfo(); renderPlayers(); setTimeout(()=>landOn(pi,pos),350); return; }
+    pos=(pos+1)%BOARD_SIZE; step++;
+    if(pos===0){ p.cash+=SALARY; p.passedGo=(p.passedGo||0)+1;
+      flash('🏁',p.name+' pasa SALIDA +$'+SALARY.toLocaleString(),true);
+      addLog('🏁',p.name,'pasa SALIDA · <strong>+$'+SALARY.toLocaleString()+'</strong>');
+    }
+    placeToken(pi,pos);
+    setTimeout(next,180);
+  }
+  next();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// LAND ON CELL
+// ═══════════════════════════════════════════════════════════════════
+function landOn(pi,pos){
+  const cell=CELLS[pos], p=G.players[pi];
+  addLog(cell.icon,p.name,'cae en <strong>'+cell.name+'</strong>');
+  if(cell.type==='corner'){
+    if(cell.id===30){p.inJail=true;p.jailTurns=0;flash('😰','¡Crisis! '+p.name+' pierde un turno.',false);}
+    else if(cell.id===20){p.cash+=500;flash('🎉',p.name+' recibe $500 — Bono!',true);}
+    showEnd(); return;
+  }
+  if(cell.type==='tax'){
+    p.cash=Math.max(0,p.cash-cell.amount);
+    flash('💸',p.name+' paga $'+cell.amount+' de impuesto',false);
+    addLog('💸',p.name,'paga <strong>$'+cell.amount+'</strong> de impuesto');
+    renderPlayers(); showEnd(); return;
+  }
+  if(cell.type==='question'){ showQuestion(pi); return; }
+  if(cell.type==='event'){ triggerEvent(pi); return; }
+  if(cell.type==='property'||cell.type==='station'||cell.type==='utility'){
+    const owner=G.props[pos];
+    if(owner===undefined){ showBuy(pi,cell,pos); }
+    else if(owner===pi){ flash('🏠','Ya eres dueño de '+cell.name,true); showEnd(); }
+    else {
+      const rent=calcRent(cell,pos);
+      p.cash=Math.max(0,p.cash-rent);
+      G.players[owner].cash+=rent;
+      flash('💸',p.name+' paga alquiler $'+rent+' a '+G.players[owner].name,false);
+      addLog('💸',p.name,'paga <strong>$'+rent+'</strong> a <strong>'+G.players[owner].name+'</strong>');
+      renderPlayers(); showEnd();
+    }
+    return;
+  }
+  showEnd();
+}
+
+function calcRent(cell,pos){
+  const owner=G.props[pos]; if(owner===undefined) return 0;
+  const same=CELLS.filter(c=>c.color&&c.color===cell.color);
+  const owned=same.filter(c=>G.props[c.id]===owner).length;
+  return (cell.rent||200)*(same.length>0&&owned===same.length?2:1);
+}
+
+function showEnd(){
+  document.getElementById('btn-end').style.display='flex';
+  fluctMkt(); updateCenterInfo(); updateBoardOwnership();
+  if(G.mode==='online') broadcastState();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// TURN UI
+// ═══════════════════════════════════════════════════════════════════
+function updateTurnUI(){
+  const p=G.players[G.currentPlayer]; if(!p) return;
+  const av=document.getElementById('tb-av'), nm=document.getElementById('tb-nm');
+  const cash=document.getElementById('tb-cash'), banner=document.getElementById('turn-banner');
+  if(av) av.textContent=p.avatar;
+  if(nm){ nm.textContent=p.name; nm.style.color=p.color; }
+  if(cash) cash.textContent='$'+p.cash.toLocaleString();
+  if(banner) banner.style.borderColor=p.color;
+  const br=document.getElementById('btn-roll'), be=document.getElementById('btn-end');
+  if(be) be.style.display='none';
+  if(br){
+    br.style.display='flex';
+    br.disabled=false;
+    br.style.opacity='1';
+    br.title='';
+    br.textContent='🎲 Lanzar dados';
+  }
+}
+
+function updateLvBadge(){
+  const b=document.getElementById('lv-badge');
+  const ico={principiante:'🌱',intermedio:'📊',experto:'🧠'};
+  b.className='lv-badge '+G.level;
+  b.textContent=ico[G.level]+' '+G.level.charAt(0).toUpperCase()+G.level.slice(1);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// END TURN
+// ═══════════════════════════════════════════════════════════════════
+function endTurn(){
+  if(G.mode==='online' && MY_PLAYER_IDX!==G.currentPlayer){ return; }
+  console.log('[endTurn] before: currentPlayer=',G.currentPlayer,'MY_PLAYER_IDX=',MY_PLAYER_IDX);
+  document.getElementById('btn-end').style.display='none';
+  const br=document.getElementById('btn-roll');
+  br.style.display='flex'; br.disabled=false;
+  document.getElementById('die1').textContent='🎲';
+  document.getElementById('die2').textContent='🎲';
+  document.getElementById('dice-total').textContent='—';
+  G.rolled=false;
+  G.currentPlayer=(G.currentPlayer+1)%G.players.length;
+  console.log('[endTurn] after: currentPlayer=',G.currentPlayer,'MY_PLAYER_IDX=',MY_PLAYER_IDX);
+  if(G.currentPlayer===0){
+    G.round++;
+    if(G.round>G.maxRounds){ endGame(); return; }
+    document.getElementById('round-pill').textContent='Ronda '+G.round+'/'+G.maxRounds;
+    addLog('🔄','Nueva ronda','<strong>Ronda '+G.round+' de '+G.maxRounds+'</strong>');
+  }
+  if(G.players[G.currentPlayer].inJail){
+    G.players[G.currentPlayer].jailTurns++;
+    if(G.players[G.currentPlayer].jailTurns>=2){
+      G.players[G.currentPlayer].inJail=false; G.players[G.currentPlayer].jailTurns=0;
+    } else { addLog('😰',G.players[G.currentPlayer].name,'pierde turno — CRISIS'); endTurn(); return; }
+  }
+  updateTurnUI(); renderPlayers(); updateCenterInfo();
+  if(G.mode==='online') broadcastState();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// PROPERTY BUY
+// ═══════════════════════════════════════════════════════════════════
+function showBuy(pi,cell,pos){
+  const p=G.players[pi], ok=p.cash>=cell.price;
+  document.getElementById('prop-icon').textContent=cell.icon;
+  document.getElementById('prop-name').textContent=cell.name;
+  document.getElementById('prop-sub').textContent=ok?p.avatar+' '+p.name+', ¿comprar esta propiedad?':'⚠️ No tienes suficiente efectivo.';
+  document.getElementById('prop-details').innerHTML=`
+    <div class="m-row"><span class="ml">💡 ${cell.tip||''}</span></div>
+    <div class="sep"></div>
+    <div class="m-row"><span class="ml">Precio</span><span class="mv">$${(cell.price||0).toLocaleString()}</span></div>
+    <div class="m-row"><span class="ml">Alquiler base</span><span class="mv">$${(cell.rent||200).toLocaleString()}</span></div>
+    <div class="m-row"><span class="ml">Alquiler monopolio</span><span class="mv">$${((cell.rent||200)*2).toLocaleString()}</span></div>
+    <div class="sep"></div>
+    <div class="m-row total"><span class="ml">Tu efectivo</span><span class="mv">$${p.cash.toLocaleString()}</span></div>`;
+  document.getElementById('prop-acts').innerHTML=`
+    <button class="btn btn-g" onclick="closeOv('ov-property');showEnd()">Pasar</button>
+    ${ok?`<button class="btn btn-p" onclick="buyProp(${pi},${pos})">Comprar →</button>`:''}`;
+  openOv('ov-property');
+}
+
+function buyProp(pi,pos){
+  const cell=CELLS[pos], p=G.players[pi];
+  p.cash-=cell.price; p.props.push(pos); G.props[pos]=pi;
+  updateBoardOwnership(); closeOv('ov-property');
+  flash('🏠',p.name+' compró '+cell.name,true);
+  addLog('🏠',p.name,'compra <strong>'+cell.name+'</strong> por $'+cell.price.toLocaleString());
+  renderPlayers(); showEnd();
+}
+
+function cellClick(id){
+  const cell=CELLS[id], owner=G.props[id];
+  if(owner!==undefined) flash(cell.icon,'Dueño: '+G.players[owner].avatar+' '+G.players[owner].name+' · Renta: $'+calcRent(cell,id),true);
+  else if(cell.price) flash(cell.icon,cell.name+' · $'+cell.price.toLocaleString(),false);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// QUESTIONS
+// ═══════════════════════════════════════════════════════════════════
+function showQuestion(pi){
+  const pool=QS[G.level];
+  currentQ={q:pool[Math.floor(Math.random()*pool.length)],pi};
+  document.getElementById('q-text').textContent=currentQ.q.q;
+  document.getElementById('q-res').style.display='none';
+  document.getElementById('q-cont').style.display='none';
+  document.getElementById('q-opts').innerHTML=currentQ.q.o.map((opt,i)=>
+    `<div class="q-opt" onclick="ansQ(${i},this)">${String.fromCharCode(65+i)}. ${opt}</div>`
+  ).join('');
+  openOv('ov-question');
+}
+function ansQ(idx,el){
+  const q=currentQ.q;
+  document.querySelectorAll('.q-opt').forEach(o=>o.onclick=null);
+  const res=document.getElementById('q-res'); res.style.display='block';
+  if(idx===q.a){
+    el.classList.add('correct'); G.players[currentQ.pi].cash+=q.r;
+    res.style.cssText='display:block;background:rgba(48,201,122,.12);color:var(--gr);';
+    res.innerHTML='✅ +$'+q.r+' · <em>'+q.e+'</em>';
+    addLog('🧠',G.players[currentQ.pi].name,'responde CORRECTO · <strong>+$'+q.r+'</strong>');
+  } else {
+    el.classList.add('wrong');
+    document.querySelectorAll('.q-opt')[q.a].classList.add('correct');
+    const pen=Math.floor(q.r/2);
+    G.players[currentQ.pi].cash=Math.max(0,G.players[currentQ.pi].cash-pen);
+    res.style.cssText='display:block;background:rgba(224,74,74,.12);color:var(--rd);';
+    res.innerHTML='❌ -$'+pen+' · <em>'+q.e+'</em>';
+    addLog('🧠',G.players[currentQ.pi].name,'responde MAL · <strong>-$'+pen+'</strong>');
+  }
+  document.getElementById('q-cont').style.display='flex';
+  renderPlayers();
+}
+function closeQuestion(){ closeOv('ov-question'); showEnd(); }
+
+// ═══════════════════════════════════════════════════════════════════
+// EVENTS
+// ═══════════════════════════════════════════════════════════════════
+function triggerEvent(pi){
+  const pool=EVENTS[G.level], ev=pool[Math.floor(Math.random()*pool.length)], p=G.players[pi];
+  document.getElementById('ev-icon').textContent=ev.icon;
+  document.getElementById('ev-title').textContent=ev.title;
+  document.getElementById('ev-text').textContent=ev.text;
+  let eff='';
+  if(ev.eff==='all_pct'){
+    G.players.forEach(pl=>pl.cash=Math.max(0,Math.floor(pl.cash*(1+ev.val))));
+    eff='Todos '+(ev.val>0?'+':'')+(ev.val*100).toFixed(0)+'% en efectivo';
+  } else if(ev.eff==='cur_pct'){
+    const loss=Math.floor(p.cash*Math.abs(ev.val));
+    p.cash=Math.max(0,ev.val<0?p.cash-loss:p.cash+loss);
+    eff=p.name+(ev.val<0?' pierde':' gana')+' $'+loss.toLocaleString();
+  } else if(ev.eff==='cur_flat'){
+    p.cash+=ev.val;
+    eff=p.name+(ev.val>0?' recibe':' paga')+' $'+Math.abs(ev.val).toLocaleString();
+  } else if(ev.eff==='dividend'){
+    const g=p.props.length*ev.val; p.cash+=g;
+    eff=p.name+' cobra dividendos: +$'+g.toLocaleString();
+  }
+  document.getElementById('ev-effect').innerHTML=`<div class="m-row"><span class="ml">Efecto</span>
+    <span class="mv ${ev.pos?'':''}" style="color:${ev.pos?'var(--gr)':'var(--rd)'}">${eff}</span></div>`;
+  addLog(ev.icon,'EVENTO','<strong>'+ev.title+'</strong> — '+eff);
+  renderPlayers(); openOv('ov-event');
+}
+function resumeEvent(){ showEnd(); }
+
+// ═══════════════════════════════════════════════════════════════════
+// MARKET
+// ═══════════════════════════════════════════════════════════════════
+function fluctMkt(){
+  Object.values(G.mkt).forEach(a=>{
+    a.price=Math.max(8,Math.round(a.price*(1+(Math.random()-.48)*.14)));
+    a.history.push(a.price);
+    if(a.history.length>24) a.history.shift();
+  });
+  renderMarket();
+}
+
+function openInvest(){
+  invSelAsset=null;
+  document.getElementById('inv-sel').textContent='— selecciona —';
+  document.getElementById('inv-amount').value='';
+  renderInvTickers();
+  openOv('ov-invest');
+}
+
+function renderInvTickers(){
+  const p=G.players[G.currentPlayer];
+  document.getElementById('inv-tickers').innerHTML=Object.values(G.mkt).map(a=>{
+    const ch=a.history.length>1?((a.price-a.history[a.history.length-2])/a.history[a.history.length-2]*100).toFixed(1):'0.0';
+    const up=parseFloat(ch)>=0, sel=invSelAsset===a.symbol;
+    const h=a.holdings[G.currentPlayer], own=h?h.units:0;
+    return `<div class="ticker" onclick="selInv('${a.symbol}',this)" style="border-color:${sel?'var(--ac)':'var(--bd)'};">
+      <div class="t-sym" style="color:${up?'var(--gr)':'var(--rd)'}">${a.symbol}</div>
+      <div class="t-bar">
+        <div class="t-name">${a.name}${own>0?' ('+own+'u)':''}</div>
+        <div class="t-row"><span class="t-price">$${a.price}</span>
+          <span class="t-chg ${up?'up':'dn'}">${up?'+':''}${ch}%</span></div>
+      </div>
+      <svg class="t-spark" viewBox="0 0 50 20">${spark(a.history,up)}</svg>
+    </div>`;
+  }).join('');
+}
+
+function selInv(sym){ invSelAsset=sym; document.getElementById('inv-sel').textContent=sym; renderInvTickers(); }
+function setPreset(f){ document.getElementById('inv-amount').value=Math.floor(G.players[G.currentPlayer].cash*f); }
+
+function doInvest(){
+  if(!invSelAsset){flash('⚠️','Selecciona un activo',false);return;}
+  const amt=parseInt(document.getElementById('inv-amount').value)||0;
+  const p=G.players[G.currentPlayer];
+  if(amt<=0||amt>p.cash){flash('⚠️','Monto inválido',false);return;}
+  const a=G.mkt[invSelAsset];
+  const units=Math.floor(amt/a.price);
+  if(!units){flash('⚠️','Monto demasiado bajo',false);return;}
+  const spent=units*a.price; p.cash-=spent;
+  if(!a.holdings[G.currentPlayer]) a.holdings[G.currentPlayer]={units:0,avg:0};
+  const h=a.holdings[G.currentPlayer], tot=h.units+units;
+  h.avg=Math.round((h.avg*h.units+a.price*units)/tot); h.units=tot;
+  closeOv('ov-invest'); invSelAsset=null;
+  flash('📈',p.name+' invirtió $'+spent.toLocaleString()+' en '+a.name,true);
+  addLog('📈',p.name,'invierte <strong>$'+spent.toLocaleString()+'</strong> en <strong>'+a.symbol+'</strong>');
+  renderPlayers(); renderMarket();
+}
+
+function spark(hist,up){
+  if(hist.length<2) return '';
+  const mn=Math.min(...hist),mx=Math.max(...hist),rng=mx-mn||1;
+  return '<polyline points="'+hist.map((v,i)=>(i/(hist.length-1)*48+1)+','+(18-((v-mn)/rng)*16-1)).join(' ')+
+    `" fill="none" stroke="${up?'#30C97A':'#E04A4A'}" stroke-width="1.5"/>`;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// RENDER PANELS
+// ═══════════════════════════════════════════════════════════════════
+function renderPlayers(){
+  const p=document.getElementById('tab-players');
+  const cash=document.getElementById('tb-cash');
+  const cur=G.players[G.currentPlayer];
+  if(cash&&cur) cash.textContent='$'+cur.cash.toLocaleString();
+  const mxW=G.players.reduce((a,_,i)=>Math.max(a,wealth(i)),1);
+  p.innerHTML=G.players.map((pl,i)=>{
+    const w=wealth(i), isCur=i===G.currentPlayer;
+    return `<div class="p-card ${isCur?'cur':''}">
+      <div class="p-card-top">
+        <div class="p-em">${pl.avatar}</div>
+        <div class="p-inf">
+          <div class="p-nm" style="color:${pl.color}">${pl.name}${isCur?' ◀':''}</div>
+          <div class="p-pos">📍 ${CELLS[pl.pos]?.name||'—'}</div>
+        </div>
+        <div class="p-wl">$${w.toLocaleString()}</div>
+      </div>
+      <div class="p-stats">
+        <div class="pst"><div class="pst-v" style="color:var(--ac)">$${pl.cash.toLocaleString()}</div><div class="pst-l">Efectivo</div></div>
+        <div class="pst"><div class="pst-v" style="color:var(--bl)">${pl.props.length}</div><div class="pst-l">Propied.</div></div>
+        <div class="pst"><div class="pst-v" style="color:var(--gr)">$${invVal(i).toLocaleString()}</div><div class="pst-l">Mercado</div></div>
+      </div>
+      <div class="pbar-w"><div class="pbar" style="background:${pl.color};width:${(w/mxW*100).toFixed(1)}%"></div></div>
+    </div>`;
+  }).join('');
+}
+
+function wealth(i){
+  const p=G.players[i]; let w=p.cash;
+  p.props.forEach(pos=>w+=(CELLS[pos].price||0));
+  return w+invVal(i);
+}
+function invVal(i){
+  let v=0;
+  Object.values(G.mkt).forEach(a=>{const h=a.holdings[i];if(h&&h.units>0)v+=h.units*a.price;});
+  return v;
+}
+
+function renderMarket(){
+  const p=document.getElementById('tab-market');
+  p.innerHTML=Object.values(G.mkt).map(a=>{
+    const ch=a.history.length>1?((a.price-a.history[a.history.length-2])/a.history[a.history.length-2]*100).toFixed(1):'0.0';
+    const up=parseFloat(ch)>=0;
+    return `<div class="ticker">
+      <div class="t-sym" style="color:${up?'var(--gr)':'var(--rd)'}">${a.symbol}</div>
+      <div class="t-bar">
+        <div class="t-name">${a.name}</div>
+        <div class="t-row"><span class="t-price">$${a.price}</span>
+          <span class="t-chg ${up?'up':'dn'}">${up?'+':''}${ch}%</span></div>
+      </div>
+      <svg class="t-spark" viewBox="0 0 50 20">${spark(a.history,up)}</svg>
+    </div>`;
+  }).join('');
+}
+
+function addLog(icon,actor,text){
+  G.log.unshift({icon,actor,text});
+  if(G.log.length>60) G.log.pop();
+  const p=document.getElementById('tab-log');
+  if(p.style.display!=='none') renderLog();
+  if(G.mode==='online'&&G.isHost) broadcastAll({type:'LOG',icon,actor,text});
+}
+function renderLog(){
+  document.getElementById('tab-log').innerHTML=G.log.map(e=>
+    `<div class="log-row"><div class="log-ic">${e.icon}</div><div class="log-tx"><strong>${e.actor}</strong> ${e.text}</div></div>`
+  ).join('');
+}
+
+function switchTab(tab,el){
+  document.querySelectorAll('.s-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  ['players','market','log'].forEach(t=>{
+    document.getElementById('tab-'+t).style.display=t===tab?'block':'none';
+  });
+  if(tab==='log') renderLog();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// END GAME
+// ═══════════════════════════════════════════════════════════════════
+function endGame(){
+  G.players.forEach((p,i)=>{
+    Object.values(G.mkt).forEach(a=>{const h=a.holdings[i];if(h&&h.units>0){p.cash+=h.units*a.price;h.units=0;}});
+    p.props.forEach(pos=>p.cash+=Math.floor((CELLS[pos].price||0)*.8));
+  });
+  const winner=G.players.map((p,i)=>({...p,w:wealth(i)})).sort((a,b)=>b.w-a.w)[0];
+  document.getElementById('w-em').textContent=winner.avatar;
+  document.getElementById('w-name').textContent=winner.name;
+  document.getElementById('w-stats').innerHTML=`
+    <div class="ws"><div class="ws-v">$${winner.w.toLocaleString()}</div><div class="ws-l">Patrimonio</div></div>
+    <div class="ws"><div class="ws-v">${winner.props.length}</div><div class="ws-l">Propiedades</div></div>
+    <div class="ws"><div class="ws-v">${G.maxRounds}</div><div class="ws-l">Rondas</div></div>`;
+  spawnConfetti(); showScreen('screen-winner');
+}
+
+function spawnConfetti(){
+  const c=document.getElementById('confetti');
+  const cols=['#F0C040','#30C97A','#4A90E2','#E05A30','#9B6BFF',...G.players.map(p=>p.color)];
+  for(let i=0;i<70;i++){
+    const p=document.createElement('div'); p.className='cf';
+    p.style.cssText=`left:${Math.random()*100}vw;background:${cols[Math.floor(Math.random()*cols.length)]};
+      animation-duration:${2+Math.random()*4}s;animation-delay:${Math.random()*3}s;
+      width:${6+Math.random()*9}px;height:${6+Math.random()*9}px;
+      border-radius:${Math.random()>.5?'50%':'2px'};`;
+    c.appendChild(p);
+  }
+}
+function rematch(){ document.getElementById('confetti').innerHTML=''; showSetup(G.mode); }
+
+// ═══════════════════════════════════════════════════════════════════
+// OVERLAYS
+// ═══════════════════════════════════════════════════════════════════
+function openOv(id){ document.getElementById(id).classList.add('open'); }
+function closeOv(id){ document.getElementById(id).classList.remove('open'); }
+
+// ═══════════════════════════════════════════════════════════════════
+// FLASH
+// ═══════════════════════════════════════════════════════════════════
+function flash(icon,text,pos){
+  const old=document.querySelector('.flash'); if(old) old.remove();
+  const f=document.createElement('div'); f.className='flash';
+  f.style.borderColor=pos?'var(--gr)':'var(--rd)';
+  f.innerHTML=`<span style="font-size:16px">${icon}</span><span>${text}</span>`;
+  document.body.appendChild(f);
+  setTimeout(()=>f.remove(),3000);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// VOICE CHAT
+// ═══════════════════════════════════════════════════════════════════
+const VC={
+  stream:null,     // local MediaStream
+  ctx:null,        // AudioContext for visualizer
+  analyser:null,   // AnalyserNode
+  pi:null,         // my player index
+  active:false,    // joined voice?
+  muted:false,     // mic muted?
+  raf:null,        // animation frame
+  pending:null,    // player idx selected in modal
+  calls:{},        // peerId -> MediaConnection (outgoing calls)
+  remotes:{},      // peerId -> HTMLAudioElement (incoming audio)
+};
+
+function vcRenderBar(){
+  const list=document.getElementById('vc-list');
+  const btn=document.getElementById('vc-btn');
+  const icon=document.getElementById('vc-icon');
+  const txt=document.getElementById('vc-txt');
+  if(!list) return;
+  if(!VC.active||!G.players.length){
+    list.innerHTML='<span style="font-size:10px;color:var(--mu);font-family:var(--fm);">Voz desactivada</span>';
+    btn.className='vc-btn'; icon.textContent='🎤'; txt.textContent='Unirse'; return;
+  }
+  // Show remote audio elements count
+  const remoteCount = Object.keys(VC.remotes).length;
+  list.innerHTML=G.players.map((p,i)=>{
+    const isMe=i===VC.pi, muted=isMe&&VC.muted;
+    return `<div class="vp-tile${muted?' muted-t':''}" id="vpt-${i}">
+      <span class="vp-av">${p.avatar}</span>
+      <span class="vp-nm" style="color:${p.color}">${p.name.split(' ')[0]}</span>
+      ${isMe?`<div class="vp-bars" id="vpb-${i}">
+        <span style="height:2px"></span><span style="height:4px"></span>
+        <span style="height:2px"></span><span style="height:3px"></span>
+      </div><span style="font-size:9px;">${muted?'🔇':'🟢'}</span>`:''}
+    </div>`;
+  }).join('');
+  if(VC.muted){ btn.className='vc-btn muted'; icon.textContent='🔇'; txt.textContent='Reactivar'; }
+  else { btn.className='vc-btn on'; icon.textContent='🎤'; txt.textContent='Silenciar'; }
+}
+
+function vcClick(){
+  if(VC.active){ vcToggle(); return; }
+  // Online: auto-detect player — no dialog needed
+  if(G.mode==='online'){
+    const myIdx=G.players.findIndex(p=>p.name===MY_NAME);
+    vcActivateDirect(myIdx>=0?myIdx:0);
+  } else {
+    vcOpenModal();
+  }
+}
+
+async function vcActivateDirect(pi){
+  const err=document.getElementById('vc-err');
+  try{
+    const s=await navigator.mediaDevices.getUserMedia({audio:true,video:false});
+    VC.stream=s; VC.pi=pi; VC.active=true; VC.muted=false;
+    VC.ctx=new (window.AudioContext||window.webkitAudioContext)();
+    const audioSrc=VC.ctx.createMediaStreamSource(s);
+    VC.analyser=VC.ctx.createAnalyser(); VC.analyser.fftSize=256;
+    audioSrc.connect(VC.analyser);
+    if(peer) vcListenForCalls();
+    vcAnnounce();
+    vcRenderBar(); vcViz();
+    addLog('🎙️',G.players[pi]?G.players[pi].name:'Jugador','activó el <strong>micrófono</strong>');
+    flash('🎙️',(G.players[pi]?G.players[pi].name:'Jugador')+' entró al chat de voz',true);
+  }catch(e){
+    let msg='⚠️ No se pudo acceder al micrófono.';
+    if(e.name==='NotAllowedError') msg='⚠️ Permiso denegado. Actívalo en el navegador.';
+    if(e.name==='NotFoundError')   msg='⚠️ No hay micrófono conectado.';
+    flash('⚠️',msg,false);
+  }
+}
+
+function vcOpenModal(){
+  VC.pending=null;
+  document.getElementById('vc-modal-grid').innerHTML=G.players.map((p,i)=>
+    `<div class="vc-m-card" id="vcmc-${i}" onclick="vcPick(${i})">
+      <div class="mc-av">${p.avatar}</div>
+      <div class="mc-nm" style="color:${p.color}">${p.name}</div>
+    </div>`).join('');
+  document.getElementById('vc-err').textContent='';
+  openOv('ov-voice');
+}
+
+function vcPick(i){
+  VC.pending=i;
+  document.querySelectorAll('.vc-m-card').forEach(c=>c.classList.remove('picked'));
+  document.getElementById('vcmc-'+i).classList.add('picked');
+}
+
+async function vcConfirm(){
+  const err=document.getElementById('vc-err'); err.textContent='';
+  if(VC.pending===null){err.textContent='⚠️ Selecciona tu jugador.';return;}
+  try{
+    const s=await navigator.mediaDevices.getUserMedia({audio:true,video:false});
+    VC.stream=s; VC.pi=VC.pending; VC.active=true; VC.muted=false;
+    VC.ctx=new (window.AudioContext||window.webkitAudioContext)();
+    const audioSrc=VC.ctx.createMediaStreamSource(s);
+    VC.analyser=VC.ctx.createAnalyser(); VC.analyser.fftSize=256;
+    audioSrc.connect(VC.analyser);
+
+    // Set up incoming call handler (or refresh it)
+    if(peer) vcListenForCalls();
+
+    // Announce via data channel → triggers a FRESH call from peers that already have voice active.
+    // We never pre-call peers here; VC_ANNOUNCE guarantees both sides have real streams.
+    vcAnnounce();
+
+    closeOv('ov-voice'); vcRenderBar(); vcViz();
+    addLog('🎙️',G.players[VC.pi].name,'activó el <strong>micrófono</strong>');
+    flash('🎙️',G.players[VC.pi].name+' entró al chat de voz',true);
+  }catch(e){
+    let msg='⚠️ No se pudo acceder al micrófono.';
+    if(e.name==='NotAllowedError') msg='⚠️ Permiso denegado. Actívalo en el navegador.';
+    if(e.name==='NotFoundError')   msg='⚠️ No hay micrófono conectado.';
+    err.textContent=msg;
+  }
+}
+
+function vcToggle(){
+  if(!VC.active||!VC.stream) return;
+  VC.muted=!VC.muted;
+  // Disable/enable all audio tracks (affects outgoing streams in calls too)
+  VC.stream.getAudioTracks().forEach(t=>t.enabled=!VC.muted);
+  // Also mute/unmute remote audio elements if we want 2-way mute
+  // (we only mute our OWN mic, not others' audio)
+  vcRenderBar();
+  addLog(VC.muted?'🔇':'🎤',G.players[VC.pi].name,VC.muted?'<strong>silenció</strong> el micrófono':'<strong>reactivó</strong> el micrófono');
+  flash(VC.muted?'🔇':'🎤',G.players[VC.pi].name+(VC.muted?' silenciado':' activo'),!VC.muted);
+}
+
+function vcViz(){
+  const buf=new Uint8Array(VC.analyser.frequencyBinCount);
+  function tick(){
+    if(!VC.active) return;
+    VC.raf=requestAnimationFrame(tick);
+    const tile=document.getElementById('vpt-'+VC.pi);
+    const bars=document.getElementById('vpb-'+VC.pi);
+    if(!tile||!bars) return;
+    if(VC.muted){tile.classList.remove('speaking');bars.querySelectorAll('span').forEach(b=>b.style.height='2px');return;}
+    VC.analyser.getByteFrequencyData(buf);
+    let sum=0; for(let i=2;i<80;i++) sum+=buf[i];
+    const vol=sum/78, talking=vol>15;
+    tile.classList.toggle('speaking',talking);
+    bars.querySelectorAll('span').forEach((b,i)=>{
+      b.style.height=(talking?Math.min(11,Math.max(2,Math.round(vol*.07*(0.5+Math.random())))):[2,3,2,2][i])+'px';
+    });
+  }
+  tick();
+}
+
+// Close a stale call with a peer and remove remote audio
+function vcDropCall(peerId){
+  if(VC.calls[peerId]){
+    try{VC.calls[peerId].close();}catch(e){}
+    delete VC.calls[peerId];
+  }
+  vcStopRemote(peerId);
+}
+
+// Announce via data channel that I've activated voice (enables mesh P2P audio)
+function vcAnnounce(){
+  if(!peer||!VC.stream) return;
+  const msg={type:'VC_ANNOUNCE',peerId:peer.id};
+  if(G.isHost){
+    if(!VC.activePeers) VC.activePeers={};
+    VC.activePeers[peer.id]=true;
+    // Tell all guests the host is voice-active
+    broadcastAll(msg);
+    // If any guests were ALREADY voice-active before host joined, call them now fresh
+    Object.keys(guestConns).forEach(id=>{
+      if(VC.activePeers[id]){
+        vcDropCall(id);  // drop any stale empty-stream call
+        vcCallPeer(id);
+      }
+    });
+  } else if(hostConn&&hostConn.open){
+    // Guest notifies host; host will relay to other guests and call us back
+    hostConn.send(msg);
+  }
+}
+
+// Call all connected peers with our audio stream
+function vcCallAllPeers(){
+  if(!peer||!VC.stream) return;
+  // Get all peer IDs we know about
+  const peerIds=[];
+  if(G.isHost){
+    // Host calls all guests
+    Object.keys(guestConns).forEach(id=>peerIds.push(id));
+  } else if(hostConn){
+    // Guest calls the host
+    peerIds.push(hostConn.peer);
+  }
+  peerIds.forEach(id=>vcCallPeer(id));
+}
+
+function vcCallPeer(peerId){
+  if(!peer||!VC.stream||VC.calls[peerId]) return;
+  try{
+    console.log('Calling peer for voice:', peerId);
+    const call=peer.call(peerId,VC.stream);
+    VC.calls[peerId]=call;
+    call.on('stream',remoteStream=>{
+      console.log('Got remote stream from:', peerId, remoteStream.getTracks());
+      vcPlayRemote(peerId,remoteStream);
+    });
+    call.on('close',()=>{
+      vcStopRemote(peerId);
+      delete VC.calls[peerId];
+    });
+    call.on('error',e=>console.warn('call error',peerId,e));
+  }catch(e){console.warn('vcCallPeer error',e);}
+}
+
+function vcListenForCalls(){
+  if(!peer) return;
+  // Remove previous listener to avoid duplicates
+  peer.off('call');
+  peer.on('call', call=>{
+    console.log('Incoming voice call from:', call.peer);
+    // Drop any stale call from this peer before answering the fresh one
+    if(VC.calls[call.peer]){
+      try{VC.calls[call.peer].close();}catch(e){}
+      delete VC.calls[call.peer];
+      vcStopRemote(call.peer);
+    }
+    // Answer with our mic stream if available, otherwise empty
+    const answerStream = VC.stream || new MediaStream();
+    call.answer(answerStream);
+    call.on('stream', remoteStream=>{
+      console.log('Answered call, got stream from:', call.peer, remoteStream.getTracks());
+      vcPlayRemote(call.peer, remoteStream);
+    });
+    call.on('close', ()=>{ vcStopRemote(call.peer); delete VC.calls[call.peer]; });
+    call.on('error', e=>console.warn('incoming call error', call.peer, e));
+    // Store so we can close later
+    VC.calls[call.peer] = call;
+  });
+}
+
+function vcPlayRemote(peerId, stream){
+  vcStopRemote(peerId);
+
+  // Must attach audio element to DOM for iOS Safari compatibility
+  const audio = document.createElement('audio');
+  audio.id = 'remote-audio-' + peerId.replace(/[^a-z0-9]/gi,'-');
+  audio.srcObject = stream;
+  audio.autoplay = true;
+  audio.volume = 1.0;
+  audio.setAttribute('playsinline','');   // iOS inline playback
+  audio.setAttribute('webkit-playsinline',''); // older iOS
+  // Hide but keep in DOM
+  audio.style.cssText = 'position:absolute;width:0;height:0;opacity:0;pointer-events:none;';
+  document.body.appendChild(audio);
+
+  // Resume AudioContext if suspended
+  if(VC.ctx && VC.ctx.state === 'suspended') VC.ctx.resume();
+
+  // Play with fallback
+  const tryPlay = () => {
+    audio.play().catch(err => {
+      console.warn('Remote audio play failed:', err);
+      // Retry on next user interaction
+      const retry = () => { audio.play().catch(()=>{}); };
+      document.addEventListener('click', retry, {once:true});
+      document.addEventListener('touchstart', retry, {once:true});
+    });
+  };
+  tryPlay();
+
+  VC.remotes[peerId] = audio;
+  console.log('Playing remote audio from peer:', peerId);
+}
+
+function vcStopRemote(peerId){
+  if(VC.remotes[peerId]){
+    try{
+      VC.remotes[peerId].pause();
+      VC.remotes[peerId].srcObject = null;
+      // Remove from DOM if it was inserted
+      if(VC.remotes[peerId].parentNode){
+        VC.remotes[peerId].parentNode.removeChild(VC.remotes[peerId]);
+      }
+    }catch(e){}
+    delete VC.remotes[peerId];
+  }
+}
+
+function vcLeave(){
+  if(!VC.active) return;
+  if(VC.raf) cancelAnimationFrame(VC.raf);
+  if(VC.stream) VC.stream.getTracks().forEach(t=>t.stop());
+  if(VC.ctx&&VC.ctx.state!=='closed') VC.ctx.close();
+  Object.values(VC.calls).forEach(c=>{try{c.close();}catch(e){}});
+  Object.keys(VC.remotes).forEach(id=>vcStopRemote(id));
+  Object.assign(VC,{stream:null,ctx:null,analyser:null,active:false,muted:false,pi:null,raf:null,calls:{},remotes:{},activePeers:{}});
+  vcRenderBar();
+}
+// Resume AudioContext on user interaction (required by browsers)
+document.addEventListener('click', ()=>{
+  if(VC.ctx && VC.ctx.state==='suspended') VC.ctx.resume();
+}, {passive:true});
+document.addEventListener('touchstart', ()=>{
+  if(VC.ctx && VC.ctx.state==='suspended') VC.ctx.resume();
+}, {passive:true});
+</script>
+</body>
+</html>
